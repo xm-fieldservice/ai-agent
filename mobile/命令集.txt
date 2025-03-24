@@ -1,0 +1,13 @@
+npm run dev
+
+POST /api/generate - 生成文本
+POST /api/chat - 聊天补全
+GET /api/models - 获取模型列表
+GET /api/prompt-templates - 获取提示词模板
+GET /health - 健康检查
+让我们测试一下服务是否正常工作。首先测试健康检查接口：
+
+
+给"手机页面功能任务计划"更新进度，保持在“计划”中规定的任务主线上；
+
+继续

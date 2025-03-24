@@ -1,0 +1,238 @@
+# 内务系统双AI代码审查规范
+
+## 一、总体原则
+
+### 1. **AI生成代码边界控制**
+   - **检查要点**：
+     - 代码实现严格遵循需求文档范围，不擅自增加功能
+     - 新功能引入必须经过明确审批流程
+     - 避免过度设计倾向
+   - **告警级别**：🔴（阻塞）
+
+### 2. **代码一致性与复用**
+   - **检查要点**：
+     - 不存在功能相似但互不调用的重复代码块
+     - 修复问题时不绕过原有代码路径创建新实现
+     - 重复代码块（≥3处相同逻辑）已提取为公共方法
+   - **告警级别**：🟡（警告）
+
+## 二、架构设计维度
+
+### 1. **模块化与低耦合**
+   - **检查要点**：
+     - 单一模块内聚度高，功能相关性强
+     - 跨模块调用次数合理限制
+     - 合理使用依赖注入模式
+   - **工具支持**：
+     - 前端：`eslint-plugin-vue` 依赖分析
+     - 后端：Spring上下文依赖分析
+
+### 2. **扩展性设计**
+   - **检查要点**：
+     - 核心接口定义抽象层（如Java接口或Vue组件接口）
+     - 数据库表包含扩展字段（如`extra_info JSON`）
+     - 配置项支持热更新
+   - **工具支持**：
+     - Spring Bean接口实现检查
+     - 数据库表结构分析工具
+
+## 三、开发流程维度
+
+### 1. **代码复用审查**
+   - **检查要点**：
+     - 方法间相似度过高时触发重构提醒
+     - 工具生成的代码（如CRUD）通过适当模式管理
+     - 遵循"Don't Repeat Yourself"原则
+   - **工具支持**：
+     - 代码相似度检测工具
+     - Vue组件复用分析
+
+### 2. **设计文档一致性**
+   - **检查要点**：
+     - 接口定义与Swagger/OpenAPI文档保持同步
+     - 数据库Schema变更在迁移文件中记录
+     - 异常码定义与文档中的错误码表一致
+   - **工具支持**：
+     - API规范校验工具
+     - 接口与文档对比工具
+
+## 四、性能与安全维度
+
+### 1. **性能问题识别**
+   - **检查要点**：
+     - 避免循环中的数据库操作
+     - 批量操作优先于单条处理
+     - 合理使用缓存机制
+   - **工具支持**：
+     - SQL执行计划分析
+     - 前端性能分析工具
+
+### 2. **安全漏洞防范**
+   - **检查要点**：
+     - 输入数据进行严格验证和转义
+     - 敏感数据加密存储和传输
+     - API接口权限控制完善
+   - **工具支持**：
+     - 依赖扫描工具
+     - 代码安全分析工具
+
+## 五、模块专属规则
+
+### 1. **对话系统模块规则**
+   - **检查要点**：
+     - Markdown格式处理标准化
+     - 离线存储机制健壮
+     - 数据同步冲突处理完善
+   - **工具支持**：
+     - Markdown解析一致性检查
+     - 数据同步逻辑分析工具
+
+### 2. **AI服务模块规则**
+   - **检查要点**：
+     - 模型调用接口统一封装
+     - 异步处理机制完善
+     - 流量控制与熔断机制实现
+   - **工具支持**：
+     - API调用链分析
+     - 异步任务监控工具
+
+### 3. **Mattermost集成模块规则**
+   - **检查要点**：
+     - OAuth认证流程符合标准
+     - Webhook回调处理安全可靠
+     - 用户关联映射准确
+   - **工具支持**：
+     - 集成测试套件
+     - 接口响应分析工具
+
+## 六、AI持续审查机制
+
+### 1. **开发阶段实时检查**
+   - **钩子机制**：
+     - Pre-commit钩子触发代码格式化和静态分析
+     - CI流水线集成代码质量扫描
+   - **自动化程度**：
+     - 常规格式问题自动修复
+     - 复杂问题提供修复建议
+
+### 2. **智能告警分级**
+   - **告警等级**：
+     - 🔴 级：阻塞缺陷（安全漏洞、重大性能问题、违反需求边界）
+     - 🟡 级：代码异味（复杂度超标、重复代码、可能的设计问题）
+     - 🔵 级：建议优化（规范优化、注释完善、小型重构机会）
+
+## 七、AI生成代码质量控制专项
+
+### 1. **AI生成代码审查流程**
+   - **预生成控制**：
+     - 确认需求明确（防止AI自行扩展）
+     - 明确告知AI不得增加额外功能
+     - 使用标准化提示词模板限制AI行为
+   
+   - **生成后立即审查**：
+     - 代码是否仅实现要求的功能
+     - 是否创建了重复功能
+     - 是否复用现有代码而非重新实现
+
+### 2. **代码修改而非替换原则**
+   - **检查要点**：
+     - 修改代码时必须先从当前代码修改，不随意增加新代码
+     - 不得造成代码重复和废弃
+     - 遵循渐进式改进而非全量替换
+   - **告警级别**：🔴（阻塞）
+
+### 3. **代码规模控制**
+   - **检查要点**：
+     - 生成代码超过指定规模时必须先讨论批准
+     - 单次提交代码量符合团队规范
+     - 功能开发分解为可管理的小步骤
+   - **告警级别**：🟡（警告）
+
+### 4. **废弃代码管理**
+   - **检查要点**：
+     - 定期进行代码使用分析
+     - 标记并移除未被调用的代码
+     - 合并功能相似的重复实现
+   - **工具支持**：
+     - 死代码检测工具
+     - 代码覆盖率分析
+
+## 八、审查实例
+
+### 不合规示例
+
+```java
+// 🔴 违反需求边界 - 擅自添加未需求的功能
+@Service
+public class NoteServiceImpl implements NoteService {
+    @Override
+    public NoteDTO processNote(String content, Long userId) {
+        // 擅自添加了自动翻译功能，而需求中并未要求
+        String translatedContent = translationService.autoTranslate(content); 
+        
+        Note note = new Note();
+        note.setContent(content);
+        note.setTranslatedContent(translatedContent); // 擅自扩展数据模型
+        note.setUserId(userId);
+        noteRepository.save(note);
+        
+        return convertToDTO(note);
+    }
+}
+```
+
+### 合规示例
+
+```java
+// ✅ 符合要求的实现
+@Service
+public class NoteServiceImpl implements NoteService {
+    private final NoteRepository noteRepository;
+    private final Logger logger = LoggerFactory.getLogger(NoteServiceImpl.class);
+    
+    @Autowired
+    public NoteServiceImpl(NoteRepository noteRepository) {
+        this.noteRepository = noteRepository;
+    }
+    
+    @Override
+    @Transactional
+    public NoteDTO processNote(String content, Long userId) {
+        // 输入验证
+        if (content == null || userId == null) {
+            throw new IllegalArgumentException("Content and userId cannot be null");
+        }
+        
+        // 统一日志格式
+        logger.info("Processing note for user: {}", userId);
+        
+        // 使用现有数据模型
+        Note note = new Note();
+        note.setContent(content);
+        note.setUserId(userId);
+        note.setCreatedAt(LocalDateTime.now());
+        
+        // 数据库操作包含事务
+        Note savedNote = noteRepository.save(note);
+        
+        return convertToDTO(savedNote);
+    }
+}
+```
+
+## 九、落地实施
+
+### 1. **审查工具集成**
+   - 集成SonarQube进行代码质量分析
+   - 建立自动化测试流水线
+   - 开发专用的AI代码审查插件
+
+### 2. **团队培训与意识建设**
+   - 定期代码审查分享会
+   - 建立最佳实践案例库
+   - AI生成代码的使用指南培训
+
+### 3. **持续优化机制**
+   - 收集审查数据反馈改进规则
+   - 定期评估审查规则有效性
+   - 根据项目发展调整规范重点

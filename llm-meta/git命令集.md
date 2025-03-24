@@ -1,3 +1,24 @@
+#后端启动
+python src/main.py
+# 看看谁占了8000
+netstat -ano | findstr :8000
+#终止进程
+taskkill /F /PID 26224、
+
+#前端启动
+cd llm-meta/frontend ; python -m http.server 8080 --bind 127.0.0.1
+
+
+在VS Code或Cursor这样的IDE中，这些绿色圆点（Git装饰器）表示Git版本控制的状态：
+绿色圆点表示这些文件或目录已经被Git跟踪并且有新的更改被添加到了Git仓库中（即已经执行了git add命令）
+这意味着这些文件/目录的更改已经被暂存(staged)，准备好进行提交(commit)
+其他常见的Git状态指示器包括：
+U (Untracked): 未跟踪的新文件（红色）
+M (Modified): 已修改但未暂存的文件（黄色）
+A (Added): 新添加到暂存区的文件（绿色）
+D (Deleted): 已删除的文件
+在您的截图中，这三个绿色圆点表明这些位置的文件或目录已经被添加到Git的暂存区，等待提交。这是我们之前执行git add .命令的结果。
+
 "C:\Program Files\Python312\python.exe" "d:\AI\cursor\ClipboardSaver\start_pyqt5.pyw"
 
 git config --global user.name "xm-fieldservice"
@@ -124,3 +145,35 @@ commit 22df4265b5ccc64b653433add1e9cb947207051f (HEAD -> main, origin/main, new-
    - `git log --graph --oneline --all` 可视化显示所有分支
    - `git branch -vv` 显示本地分支与远程分支的跟踪关系
      贡献人：CUR
+
+
+让我为您解释Git仓库操作的最佳实践：
+
+1. **关于目录位置**：
+- 由于我们已经将整个项目作为一个Git仓库进行了初始化，所以您可以在项目的任何子目录中进行Git操作
+- Git会自动找到项目根目录下的`.git`文件夹，因此不需要特意回到项目根目录
+
+2. **操作建议**：
+- 您可以在任何子目录中执行Git命令，比如：
+  ```
+  git add .
+  git commit -m "更新说明"
+  git push
+  ```
+- 这些命令都会正常工作，因为它们会自动找到项目根目录的Git仓库
+
+3. **最佳实践**：
+- 虽然技术上可以在任何子目录操作，但建议在项目根目录下进行Git操作，因为：
+  - 更容易看到所有变更的文件
+  - 避免意外提交不相关的文件
+  - 保持操作的一致性
+
+4. **特殊情况**：
+- 如果您只想提交特定模块的更改，可以在该模块目录下使用：
+  ```
+  git add 模块名/
+  git commit -m "更新特定模块"
+  ```
+- 但建议在根目录下执行，这样更容易控制提交范围
+
+所以总结来说：虽然技术上可以在任何子目录操作，但为了保持清晰和避免混淆，建议在项目根目录（`D:\AI\ai-agent`）下进行Git操作。

@@ -9,14 +9,18 @@ import markdown
 import json
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 # 配置日志
 os.makedirs("logs", exist_ok=True)
 logging.basicConfig(
-    level=logging.INFO,
+    level=getattr(logging, os.getenv("LOG_LEVEL", "INFO")),
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("logs/llm_api.log"),
+        logging.FileHandler(os.getenv("LOG_FILE", "logs/llm_api.log")),
         logging.StreamHandler()
     ]
 )
@@ -39,7 +43,12 @@ def get_config():
         config_path = os.path.join("config", "config.yaml")
         try:
             with open(config_path, "r", encoding="utf-8") as f:
-                get_config.config = yaml.safe_load(f)
+                config = yaml.safe_load(f)
+                # 替换环境变量
+                for model in config["models"].values():
+                    if "api_key" in model:
+                        model["api_key"] = os.path.expandvars(model["api_key"])
+                get_config.config = config
                 logger.info(f"配置加载成功: {config_path}")
         except Exception as e:
             logger.error(f"配置加载失败: {str(e)}")

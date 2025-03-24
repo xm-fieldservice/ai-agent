@@ -1,8 +1,21 @@
    {
      "folders": [
-       { "name": "📁 总览 (Overview)", "path": "." },
+       { "name": "📁 总览 (Overview)", "path": "./" },
        { "name": "🏢 大模型 (LLM-meta)", "path": "./llm-meta" },
        { "name": "📝 笔记系统 (Notes)", "path": "./notes" },
+       { "name": "🔍 手机入口 (mobile)", "path": "./mobile" },
        { "name": "⚙️ 聊天 (Chat)", "path": "./Chat" }
-     ]
+    ],
+    "settings": {
+      "files.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/.git": true,
+       
+      },
+      "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true
+      }
+    }
    }
