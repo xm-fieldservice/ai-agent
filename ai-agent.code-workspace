@@ -1,0 +1,8 @@
+   {
+     "folders": [
+       { "name": "📁 总览 (Overview)", "path": "." },
+       { "name": "🏢 大模型 (LLM-meta)", "path": "./llm-meta" },
+       { "name": "📝 笔记系统 (Notes)", "path": "./notes" },
+       { "name": "⚙️ 聊天 (Chat)", "path": "./Chat" }
+     ]
+   }

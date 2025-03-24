@@ -1,0 +1,748 @@
+充分考虑下面的需求，有必要就修改设计，没必要就可以不修改。重新给我生成一个需求和设计文档；
+
+结构上补充：
+一、交互层：
+1. 展示层：手机和PC 
+2. 提示词
+3. 参数
+4. 选择大模型的种类（key ）
+上述四个内容可以作为表层，用参数或者页面配置
+
+二、输入，输出有两种方式
+1. PC, 手机页面输入，输出（就像一般问答页面），数据格式为MD格式；
+2. 接口输入输出：从应用输入，输出到应用，通过接口
+3. 格式为MD 格式或者其他必要的格式；
+
+
+三、底层；
+所有必要的机制，配置；
+
+四、备注
+1. 这是企业自用，不用特别追求完美
+2. 全部代码AI 生成，没有人参与；
+3. 结构稳定，快速部署；
+
+---
+
+# 企业级大模型公共模块需求与技术设计文档（V3.0）
+
+## 一、需求文档（分阶段实现）
+
+### 第一阶段：最小可行产品(MVP)
+
+#### 核心目标
+构建统一的企业内部大模型服务平台，支持多渠道交互（页面与API），提供模型管理、参数配置和提示词管理能力，确保快速部署和稳定运行。
+
+#### 功能需求
+
+##### 交互层
+1. **展示层**
+   - **PC 网页界面**：响应式设计，支持问答交互
+   - **移动端界面**：轻量级移动适配，保证基本交互体验
+   - **Markdown渲染**：支持回复内容的MD格式渲染
+
+2. **提示词管理**
+   - 支持基础提示词模板选择
+   - 允许用户输入自定义提示词
+   - 保存常用提示词
+
+3. **参数控制**
+   - 提供temperature滑动控制
+   - 支持max_tokens设置
+   - 记住用户最近一次设置
+
+4. **模型选择**
+   - 支持在前端切换已配置的模型
+   - 显示模型基本信息（提供商、适用场景）
+
+##### 输入输出层
+1. **交互式界面**
+   - 类聊天界面的问答形式
+   - 支持Markdown格式的输入和输出
+   - 历史对话保存和查看
+
+2. **API接口**
+   - 提供RESTful API接口
+   - 支持同步调用方式
+   - 支持结构化输入和Markdown输出
+
+##### 底层服务
+1. **模型管理**
+   - 通过配置文件管理多个模型
+   - 支持API Key和调用参数配置
+   - 简单的模型路由机制
+
+2. **基础日志**
+   - 记录调用信息和响应状态
+   - 支持按应用和模型筛选日志
+
+### 第二阶段：完整功能
+
+#### 核心目标
+扩展第一阶段功能，增强用户体验，提供更丰富的集成和管理能力。
+
+#### 功能需求
+
+##### 交互层增强
+1. **高级展示层**
+   - 完整的响应式界面，支持黑暗模式
+   - 富文本编辑器，支持多种输入格式
+   - 用户个性化设置（字体大小、主题等）
+
+2. **高级提示词管理**
+   - 提示词分类管理和标签
+   - 团队共享提示词库
+   - 提示词变量插入
+
+3. **完整参数配置**
+   - 所有LLM参数图形化配置
+   - 参数组合保存和复用
+   - 参数效果预览
+
+4. **模型高级管理**
+   - 模型性能对比数据
+   - 自动选择最适合的模型
+   - 支持模型偏好设置
+
+##### 输入输出层增强
+1. **多模态支持**
+   - 图像上传和处理功能
+   - 文档上传和处理
+   - 语音输入/输出（可选）
+
+2. **增强API**
+   - 支持异步调用方式
+   - 批量处理能力
+   - 更多格式输出选项（JSON/HTML/纯文本等）
+
+##### 底层增强
+1. **高级路由策略**
+   - 基于内容的智能模型选择
+   - 成本和性能平衡的调度策略
+   - 支持模型级联调用
+
+2. **集成能力**
+   - Webhook事件推送
+   - 消息队列集成
+   - 自定义输出处理器
+
+## 二、技术设计文档
+
+### 1. 系统架构
+
+```
+┌─────────────────────────────────────────┐
+│              交互层 (前端)               │
+├───────────────┬─────────────┬───────────┤
+│  PC Web界面   │  移动端界面  │ API文档   │
+└───────┬───────┴──────┬──────┴─────┬─────┘
+        │              │            │
+        ▼              ▼            ▼
+┌─────────────────────────────────────────┐
+│              输入输出层                  │
+├───────────────┬─────────────┬───────────┤
+│  界面交互     │   API服务   │ 格式转换  │
+└───────┬───────┴──────┬──────┴─────┬─────┘
+        │              │            │
+        ▼              ▼            ▼
+┌─────────────────────────────────────────┐
+│                底层服务                  │
+├───────────────┬─────────────┬───────────┤
+│  模型管理     │  调用适配器 │  日志系统 │
+└───────┬───────┴──────┬──────┴─────┬─────┘
+        │              │            │
+        ▼              ▼            ▼
+┌─────────────────────────────────────────┐
+│              第三方LLM API               │
+└─────────────────────────────────────────┘
+```
+
+### 2. 核心模块设计
+
+#### 2.1 前端界面设计（第一阶段）
+
+使用Vue.js构建响应式前端，同时适配PC和移动端：
+
+```javascript
+// 主页面组件结构
+<template>
+  <div class="app-container">
+    <!-- 顶部导航栏 -->
+    <header class="app-header">
+      <h1>企业智能助手</h1>
+      <div class="model-selector">
+        <select v-model="selectedModel" @change="onModelChange">
+          <option v-for="model in models" :key="model.id" :value="model.id">
+            {{ model.name }}
+          </option>
+        </select>
+      </div>
+    </header>
+    
+    <!-- 对话内容区 -->
+    <div class="chat-container">
+      <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.role]">
+        <div class="message-content markdown-body" v-html="renderMarkdown(msg.content)"></div>
+      </div>
+      <div ref="messagesEnd"></div>
+    </div>
+    
+    <!-- 输入区域 -->
+    <div class="input-container">
+      <div class="prompt-templates" v-if="showPromptTemplates">
+        <div v-for="template in promptTemplates" :key="template.id"
+             class="prompt-item" @click="selectPromptTemplate(template)">
+          {{ template.title }}
+        </div>
+      </div>
+      
+      <div class="parameters-panel" v-if="showParameters">
+        <div class="param-item">
+          <label>Temperature</label>
+          <input type="range" v-model="parameters.temperature" min="0" max="1" step="0.1">
+          <span>{{ parameters.temperature }}</span>
+        </div>
+        <div class="param-item">
+          <label>Max Tokens</label>
+          <input type="number" v-model="parameters.maxTokens" min="100" max="4000">
+        </div>
+      </div>
+      
+      <textarea v-model="userInput" 
+                placeholder="输入您的问题..." 
+                @keydown.enter.ctrl="sendMessage"></textarea>
+      
+      <div class="input-actions">
+        <button @click="togglePromptTemplates">提示词</button>
+        <button @click="toggleParameters">参数</button>
+        <button @click="sendMessage" :disabled="isLoading">发送</button>
+      </div>
+    </div>
+  </div>
+</template>
+```
+
+#### 2.2 后端API设计（第一阶段）
+
+使用FastAPI构建轻量级后端服务，支持Web界面和API调用：
+
+```python
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+import yaml
+import logging
+import requests
+import markdown
+import json
+import os
+from datetime import datetime
+
+app = FastAPI(title="企业大模型公共服务")
+
+# 启用CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 生产环境中应该限制来源
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 加载配置
+def get_config():
+    if not hasattr(get_config, "config"):
+        with open("config.yaml", "r", encoding="utf-8") as f:
+            get_config.config = yaml.safe_load(f)
+    return get_config.config
+
+# 模型请求
+class GenerateRequest(BaseModel):
+    prompt: str
+    model_id: str = "default"
+    parameters: Optional[Dict[str, Any]] = None
+    format: str = "markdown"  # 支持markdown和text
+
+# 对话消息
+class Message(BaseModel):
+    role: str  # user或assistant
+    content: str
+
+# 对话历史请求
+class ChatRequest(BaseModel):
+    messages: List[Message]
+    model_id: str = "default"
+    parameters: Optional[Dict[str, Any]] = None
+    format: str = "markdown"
+
+# 文本生成端点
+@app.post("/api/generate")
+def generate_text(request: GenerateRequest):
+    config = get_config()
+    
+    # 获取模型配置
+    if request.model_id not in config["models"]:
+        if "default" not in config["models"]:
+            raise HTTPException(400, "模型未找到且无默认模型")
+        model_config = config["models"]["default"]
+    else:
+        model_config = config["models"][request.model_id]
+    
+    # 合并参数
+    params = model_config.get("default_params", {}).copy()
+    if request.parameters:
+        params.update(request.parameters)
+    
+    # 调用LLM API
+    try:
+        response = call_llm_api(request.prompt, model_config, params)
+        
+        # 返回结果，根据格式要求处理
+        text = response.get("text", "")
+        if request.format == "markdown":
+            # 确保文本是有效的Markdown
+            text = text.strip()
+        
+        # 记录日志
+        log_api_call(model_config["name"], request.prompt, text, params)
+        
+        return {
+            "text": text,
+            "model": model_config["name"],
+            "format": request.format
+        }
+    except Exception as e:
+        logging.error(f"API调用失败: {str(e)}")
+        raise HTTPException(500, f"调用模型失败: {str(e)}")
+
+# 对话端点
+@app.post("/api/chat")
+def chat_completion(request: ChatRequest):
+    config = get_config()
+    
+    # 获取模型配置
+    if request.model_id not in config["models"]:
+        if "default" not in config["models"]:
+            raise HTTPException(400, "模型未找到且无默认模型")
+        model_config = config["models"]["default"]
+    else:
+        model_config = config["models"][request.model_id]
+    
+    # 合并参数
+    params = model_config.get("default_params", {}).copy()
+    if request.parameters:
+        params.update(request.parameters)
+    
+    # 格式化聊天历史
+    chat_history = format_chat_history(request.messages)
+    
+    try:
+        response = call_chat_api(chat_history, model_config, params)
+        
+        # 处理响应
+        assistant_message = response.get("text", "")
+        
+        # 记录日志
+        prompt = request.messages[-1].content if request.messages else ""
+        log_api_call(model_config["name"], prompt, assistant_message, params)
+        
+        return {
+            "message": {
+                "role": "assistant",
+                "content": assistant_message
+            },
+            "model": model_config["name"],
+            "format": request.format
+        }
+    except Exception as e:
+        logging.error(f"聊天API调用失败: {str(e)}")
+        raise HTTPException(500, f"调用聊天失败: {str(e)}")
+
+# 获取所有模型
+@app.get("/api/models")
+def get_models():
+    config = get_config()
+    models = []
+    for model_id, model_config in config["models"].items():
+        models.append({
+            "id": model_id,
+            "name": model_config.get("display_name", model_id),
+            "provider": model_config.get("provider", "unknown"),
+            "description": model_config.get("description", "")
+        })
+    return {"models": models}
+
+# 获取提示词模板
+@app.get("/api/prompt-templates")
+def get_prompt_templates():
+    config = get_config()
+    return {"templates": config.get("prompt_templates", [])}
+```
+
+#### 2.3 配置文件设计（第一阶段）
+
+```yaml
+# config.yaml
+models:
+  default:
+    name: "GPT-3.5 Turbo"
+    display_name: "GPT-3.5"
+    description: "适合一般问答和内容生成"
+    provider: "openai"
+    api_key: "sk-xxxx"
+    base_url: "https://api.openai.com/v1"
+    model_name: "gpt-3.5-turbo"
+    default_params:
+      temperature: 0.7
+      max_tokens: 1000
+      top_p: 0.9
+  
+  deepseek:
+    name: "DeepSeek-R1"
+    display_name: "深度思考"
+    description: "适合复杂分析和专业内容生成"
+    provider: "deepseek"
+    api_key: "sk-xxxx"
+    base_url: "https://api.deepseek.com/v1"
+    model_name: "deepseek-r1"
+    default_params:
+      temperature: 0.3
+      max_tokens: 2000
+      top_p: 0.8
+
+prompt_templates:
+  - id: "general_question"
+    title: "一般问题"
+    content: "请回答以下问题: {{input}}"
+  
+  - id: "analysis"
+    title: "分析报告"
+    content: "请对以下内容进行深入分析，包括优缺点、潜在风险和改进建议: {{input}}"
+  
+  - id: "summary"
+    title: "内容总结"
+    content: "请将以下内容概括为简洁的要点: {{input}}"
+
+# 全局设置
+settings:
+  logging:
+    level: "info"
+    file: "llm_api.log"
+    max_size: "10MB"
+    backups: 3
+  
+  server:
+    port: 8000
+    host: "0.0.0.0"
+```
+
+#### 2.4 调用适配器（第一阶段）
+
+```python
+def call_llm_api(prompt, model_config, params):
+    """统一的模型调用接口"""
+    if model_config["provider"] == "openai":
+        return call_openai_api(prompt, model_config, params)
+    elif model_config["provider"] == "minimax":
+        return call_minimax_api(prompt, model_config, params)
+    elif model_config["provider"] == "deepseek":
+        return call_deepseek_api(prompt, model_config, params)
+    else:
+        raise ValueError(f"不支持的提供商: {model_config['provider']}")
+
+def call_openai_api(prompt, model_config, params):
+    """调用OpenAI兼容API"""
+    headers = {
+        "Authorization": f"Bearer {model_config['api_key']}",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "model": model_config["model_name"],
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": params.get("temperature", 0.7),
+        "max_tokens": params.get("max_tokens", 1000),
+        "top_p": params.get("top_p", 1.0),
+        "presence_penalty": params.get("presence_penalty", 0),
+        "frequency_penalty": params.get("frequency_penalty", 0)
+    }
+    
+    url = f"{model_config['base_url']}/chat/completions"
+    
+    response = requests.post(url, headers=headers, json=data, timeout=30)
+    
+    if response.status_code != 200:
+        raise Exception(f"OpenAI API调用失败: {response.status_code} {response.text}")
+    
+    result = response.json()
+    
+    return {
+        "text": result["choices"][0]["message"]["content"],
+        "model": model_config["model_name"],
+        "request_id": result.get("id", "")
+    }
+
+def format_chat_history(messages):
+    """将消息历史转换为API需要的格式"""
+    formatted_messages = []
+    for msg in messages:
+        formatted_messages.append({
+            "role": msg.role,
+            "content": msg.content
+        })
+    return formatted_messages
+
+def call_chat_api(messages, model_config, params):
+    """调用聊天完成API"""
+    headers = {
+        "Authorization": f"Bearer {model_config['api_key']}",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "model": model_config["model_name"],
+        "messages": messages,
+        "temperature": params.get("temperature", 0.7),
+        "max_tokens": params.get("max_tokens", 1000),
+        "top_p": params.get("top_p", 1.0)
+    }
+    
+    url = f"{model_config['base_url']}/chat/completions"
+    
+    response = requests.post(url, headers=headers, json=data, timeout=30)
+    
+    if response.status_code != 200:
+        raise Exception(f"聊天API调用失败: {response.status_code} {response.text}")
+    
+    result = response.json()
+    
+    return {
+        "text": result["choices"][0]["message"]["content"],
+        "model": model_config["model_name"],
+        "request_id": result.get("id", "")
+    }
+
+def log_api_call(model_name, prompt, response, params):
+    """记录API调用日志"""
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "model": model_name,
+        "prompt": prompt[:100] + "..." if len(prompt) > 100 else prompt,
+        "response_length": len(response),
+        "parameters": params
+    }
+    
+    logging.info(json.dumps(log_entry))
+    
+    # 也可以将日志写入专门的日志文件或数据库
+    with open("api_calls.log", "a", encoding="utf-8") as f:
+        f.write(json.dumps(log_entry) + "\n")
+```
+
+### 3. 部署方案
+
+#### 3.1 Docker Compose配置
+
+```yaml
+# docker-compose.yml
+version: '3'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./logs:/app/logs
+    restart: always
+```
+
+#### 3.2 前端Dockerfile
+
+```dockerfile
+# frontend/Dockerfile
+FROM node:16-alpine as build-stage
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:stable-alpine as production-stage
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### 3.3 后端Dockerfile
+
+```dockerfile
+# backend/Dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+### 4. 第二阶段增强功能设计
+
+#### 4.1 多模态支持
+
+```python
+# 多模态处理模块
+from fastapi import UploadFile, File
+import pytesseract
+from PIL import Image
+import fitz  # PyMuPDF
+import base64
+
+# 图像处理
+async def process_image(file: UploadFile):
+    # 保存临时文件
+    temp_file_path = f"temp_{file.filename}"
+    with open(temp_file_path, "wb") as f:
+        f.write(await file.read())
+    
+    # 处理图像
+    try:
+        # 1. 提取文本
+        image = Image.open(temp_file_path)
+        extracted_text = pytesseract.image_to_string(image)
+        
+        # 2. 对于支持图像的模型，准备base64编码
+        with open(temp_file_path, "rb") as img_file:
+            base64_image = base64.b64encode(img_file.read()).decode("utf-8")
+        
+        return {
+            "extracted_text": extracted_text,
+            "base64_image": base64_image
+        }
+    finally:
+        # 删除临时文件
+        import os
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+
+# 文档处理
+async def process_document(file: UploadFile):
+    # 保存临时文件
+    temp_file_path = f"temp_{file.filename}"
+    with open(temp_file_path, "wb") as f:
+        f.write(await file.read())
+    
+    # 处理文档
+    try:
+        text = ""
+        # PDF处理
+        if file.filename.endswith(".pdf"):
+            doc = fitz.open(temp_file_path)
+            for page in doc:
+                text += page.get_text()
+        # 其他文档类型可以添加更多处理逻辑
+        
+        return {"extracted_text": text}
+    finally:
+        # 删除临时文件
+        import os
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+```
+
+#### 4.2 Webhook输出处理器
+
+```python
+# Webhook处理模块
+import aiohttp
+import asyncio
+
+class WebhookHandler:
+    def __init__(self, webhook_url, headers=None):
+        self.webhook_url = webhook_url
+        self.headers = headers or {"Content-Type": "application/json"}
+    
+    async def send(self, data):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self.webhook_url, json=data, headers=self.headers) as response:
+                    return {
+                        "status": response.status,
+                        "response": await response.text()
+                    }
+        except Exception as e:
+            return {
+                "status": 500,
+                "error": str(e)
+            }
+
+# 使用示例
+webhook_config = {
+    "url": "https://hooks.example.com/services/xxx",
+    "headers": {
+        "Authorization": "Bearer YOUR_TOKEN"
+    }
+}
+
+async def send_to_webhook(result, config=webhook_config):
+    handler = WebhookHandler(config["url"], config["headers"])
+    webhook_response = await handler.send({
+        "text": result["text"],
+        "model": result["model"],
+        "timestamp": datetime.now().isoformat()
+    })
+    return webhook_response
+```
+
+### 5. 实施计划
+
+#### 第一阶段（4周）
+| 周次 | 任务 |
+|-----|------|
+| 第1周 | 后端API开发、基础模型管理 |
+| 第2周 | 前端界面开发、响应式设计 |
+| 第3周 | 集成测试、配置优化 |
+| 第4周 | Docker部署、文档编写 |
+
+#### 第二阶段（6周）
+| 周次 | 任务 |
+|-----|------|
+| 第1-2周 | 多模态支持开发 |
+| 第3-4周 | Web界面增强、前端优化 |
+| 第5-6周 | 集成Webhook、高级路由策略 |
+
+## 三、总结
+
+本设计文档以分层架构为基础，充分考虑了企业内部使用场景，提供了PC和移动端双重界面以及API调用能力。方案特点：
+
+1. **全方位交互支持**：既有面向用户的Web界面，又有面向应用的API接口，满足不同使用场景
+2. **分层清晰**：交互层、输入输出层和底层服务明确分离，便于维护和扩展
+3. **配置驱动**：系统核心功能通过配置文件驱动，无需修改代码即可调整
+4. **易于部署**：完整的Docker部署方案，一键启动整个系统
+5. **分阶段实施**：MVP阶段聚焦核心功能，第二阶段再扩展高级特性
+
+此方案充分考虑了"全部代码AI生成"的需求，设计简洁明了，避免了复杂的依赖关系，确保系统可以快速稳定部署，并根据企业需求灵活扩展。

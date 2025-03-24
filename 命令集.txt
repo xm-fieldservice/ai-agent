@@ -1,0 +1,6 @@
+python src/main.py
+
+后端启动命令
+
+前端页面的地址是：http://localhost:8000
+

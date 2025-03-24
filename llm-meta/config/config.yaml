@@ -1,0 +1,58 @@
+models:
+  default:
+    name: "DeepSeek-V3"
+    display_name: "DeepSeek-V3"
+    description: "适合一般问答和内容生成"
+    provider: "deepseek"
+    api_key: "sk-c978041c0845421d89273625c22908b0"
+    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    model_name: "deepseek-v3"
+    default_params:
+      temperature: 0.7
+      max_tokens: 1000
+      top_p: 0.9
+  
+  deepseek:
+    name: "DeepSeek-R1"
+    display_name: "DeepSeek-R1"
+    description: "适合复杂分析和专业内容生成"
+    provider: "deepseek"
+    api_key: "sk-c978041c0845421d89273625c22908b0"
+    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    model_name: "deepseek-r1"
+    default_params:
+      temperature: 0.3
+      max_tokens: 2000
+      top_p: 0.8
+
+prompt_templates:
+  - id: "general_question"
+    title: "一般问题"
+    content: "请回答以下问题: {{input}}"
+  
+  - id: "analysis"
+    title: "分析报告"
+    content: "请对以下内容进行深入分析，包括优缺点、潜在风险和改进建议: {{input}}"
+  
+  - id: "summary"
+    title: "内容总结"
+    content: "请将以下内容概括为简洁的要点: {{input}}"
+
+# 全局设置
+settings:
+  logging:
+    level: "info"
+    file: "logs/llm_api.log"
+    max_size: "10MB"
+    backups: 3
+  
+  server:
+    port: 8000
+    host: "0.0.0.0"
+
+codeIndexing:
+  enabled: true
+  scanOptions:
+    ignoreDirs: [".git", "node_modules", "dist", "build"]
+    fileExtensions: [".js", ".ts", ".jsx", ".tsx", ".py", ".java"]
+  indexingFrequency: "daily"

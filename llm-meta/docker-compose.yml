@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  # 后端API服务
+  llm-service:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+    restart: always
+    environment:
+      - ENVIRONMENT=production
+    
+  # 前端Web服务
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - llm-service
+    restart: always 

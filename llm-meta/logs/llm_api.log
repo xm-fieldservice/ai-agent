@@ -1,0 +1,14 @@
+2025-03-24 07:42:39,117 - src.main - INFO - 配置加载成功: config\config.yaml
+2025-03-24 07:43:16,018 - src.main - INFO - API调用: {"timestamp": "2025-03-24T07:43:16.018169", "model": "DeepSeek-V3", "prompt": "你是谁", "response_length": 144, "parameters": {"temperature": 0.7, "max_tokens": 1000, "top_p": 0.9}}
+2025-03-24 07:43:48,995 - src.main - INFO - API调用: {"timestamp": "2025-03-24T07:43:48.995919", "model": "DeepSeek-R1", "prompt": "你又是谁", "response_length": 192, "parameters": {"temperature": 0.7, "max_tokens": 1000, "top_p": 0.8}}
+2025-03-24 08:09:12,579 - src.main - ERROR - 聊天API调用失败: HTTPSConnectionPool(host='dashscope.aliyuncs.com', port=443): Read timed out. (read timeout=30)
+2025-03-24 08:09:50,998 - src.main - INFO - API调用: {"timestamp": "2025-03-24T08:09:50.998295", "model": "DeepSeek-V3", "prompt": "给我开始手机侧开发的设计，按照下面的需求，给我一个简单的设计文档：\n\n笔记整理和设置区域（暂时放置空白页面）\n模型选择区域，下拉菜单构成，打开是模型清单\n问答显示区域\n提问输入区（右侧设置一个折叠开关...", "response_length": 805, "parameters": {"temperature": 0.7, "max_tokens": 1000, "top_p": 0.9}}
+2025-03-24 08:11:41,106 - src.main - ERROR - 聊天API调用失败: HTTPSConnectionPool(host='dashscope.aliyuncs.com', port=443): Read timed out. (read timeout=30)
+2025-03-24 08:22:57,222 - src.main - ERROR - 聊天API调用失败: HTTPSConnectionPool(host='dashscope.aliyuncs.com', port=443): Read timed out. (read timeout=30)
+2025-03-24 08:24:02,006 - src.main - ERROR - 聊天API调用失败: HTTPSConnectionPool(host='dashscope.aliyuncs.com', port=443): Read timed out. (read timeout=30)
+2025-03-24 08:27:17,955 - __main__ - INFO - 配置加载成功: config\config.yaml
+2025-03-24 08:36:23,319 - __main__ - INFO - 配置加载成功: config\config.yaml
+2025-03-24 08:51:10,606 - __main__ - INFO - 配置加载成功: config\config.yaml
+2025-03-24 10:14:39,507 - __main__ - INFO - 配置加载成功: config\config.yaml
+2025-03-24 10:16:09,320 - __main__ - INFO - API调用: {"timestamp": "2025-03-24T10:16:09.320969", "model": "DeepSeek-V3", "prompt": "你是谁？", "response_length": 127, "parameters": {"temperature": 0.7, "max_tokens": 1000, "top_p": 0.9}}
+2025-03-24 10:16:46,865 - __main__ - INFO - API调用: {"timestamp": "2025-03-24T10:16:46.865488", "model": "DeepSeek-R1", "prompt": "你又是谁？", "response_length": 118, "parameters": {"temperature": 0.7, "max_tokens": 1000, "top_p": 0.8}}
