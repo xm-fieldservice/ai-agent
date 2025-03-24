@@ -1,3 +1,110 @@
+让我来解释一下这个测试页面的功能：
+
+这个确实是后端通信测试的一部分，但它只是最基础的连接性测试，主要测试了：
+
+1. 基础连接测试
+   - 能否连接到后端服务器
+   - WebSocket连接是否正常
+   - 基本的请求-响应是否正常
+
+2. 消息格式测试
+   - 发送消息格式是否正确
+   - 接收响应格式是否符合预期
+   - 时间戳、ID等基础字段是否正常
+
+从截图中可以看到测试结果：
+```json
+{
+    "type": "llm",
+    "content": "你是谁",
+    "timestamp": 1742823417517,
+    "id": "12"
+}
+```
+
+但这只是最基础的通信测试，而完整的后端通信还需要实现：
+
+1. 实际业务功能
+   - 三种不同模式（笔记、聊天、AI问答）的消息处理
+   - 流式响应的处理（特别是AI回答时的打字效果）
+   - 历史消息的加载和分页
+   - 消息状态的同步
+
+2. 错误处理
+   - 网络错误处理
+   - 超时处理
+   - 重试机制
+   - 错误提示
+
+3. 性能优化
+   - 消息队列
+   - 并发控制
+   - 缓存策略
+
+4. 用户体验
+   - 加载状态提示
+   - 发送状态反馈
+   - 错误提示UI
+
+所以说，当前这个测试页面只完成了最基础的通信测试，距离完整的后端通信功能还有一定距离。建议接下来我们可以：
+
+1. 实现完整的消息发送流程
+2. 添加流式响应处理
+3. 完善错误处理机制
+4. 优化用户体验
+
+您觉得我们应该先专注于哪个部分？
+
+
+现在让我们进行完整的通信测试计划：
+基础连接测试：
+Apply to 测试文档.txt
+消息发送测试：
+笔记类型消息
+聊天类型消息
+AI问答类型消息
+流式响应测试：
+AI回答时的打字效果
+中断响应处理
+错误处理测试：
+网络断开情况
+服务器错误
+超时情况
+并发请求
+
+好的，让我们开始进行完整的后端通信测试。我们先看一下当前的通信测试组件：
+
+Read file: mobile/src/components/CommunicationTest.vue
+让我们看一下消息存储的代码：
+
+Read file: mobile/src/stores/message.js
+现在让我们进行完整的通信测试计划：
+
+1. 基础连接测试：
+```javascript
+// 测试服务器健康状态
+await messageStore.testConnection()
+```
+
+2. 消息发送测试：
+- 笔记类型消息
+- 聊天类型消息
+- AI问答类型消息
+
+3. 流式响应测试：
+- AI回答时的打字效果
+- 中断响应处理
+
+4. 错误处理测试：
+- 网络断开情况
+- 服务器错误
+- 超时情况
+- 并发请求
+
+让我们先修改通信测试组件，添加更多测试场景：
+
+```纯文本:mobile/src/components/CommunicationTest.vue
+// ... existing code ...
 <template>
   <div class="communication-test">
     <van-cell-group inset>
@@ -379,4 +486,226 @@ const testStreamResponse = async () => {
     }
   }
 }
-</style> 
+</style>
+// ... existing code ...
+```
+现在让我们来看看消息存储的代码，以确保它支持这些新的测试场景：
+
+Read file: mobile/src/stores/message.js
+我们需要修改消息存储代码以支持新的测试场景。让我们添加流式响应测试和错误处理：
+
+```javascript:mobile/src/stores/message.js
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import request from '../utils/request'
+
+export const useMessageStore = defineStore('message', () => {
+  // 状态
+  const messages = ref([])
+  const loading = ref(false)
+  const hasMore = ref(true)
+  const error = ref(null)
+  
+  // 格式化时间戳
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp)
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  }
+  
+  // 发送消息
+  const sendMessage = async (message, options = {}) => {
+    const { timeout } = options
+    
+    try {
+      error.value = null
+      loading.value = true
+      
+      // 检查网络状态
+      if (!navigator.onLine) {
+        throw new Error('网络连接已断开')
+      }
+      
+      // 创建请求控制器
+      const controller = new AbortController()
+      const timeoutId = timeout && setTimeout(() => controller.abort(), timeout)
+      
+      const response = await request.post('/messages', message, {
+        signal: controller.signal
+      })
+      
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+      
+      const newMessage = {
+        ...message,
+        id: response.id,
+        timestamp: response.timestamp || Date.now(),
+        formattedTime: formatTimestamp(response.timestamp || Date.now())
+      }
+      messages.value.push(newMessage)
+      return newMessage
+    } catch (err) {
+      error.value = err.message
+      if (err.name === 'AbortError') {
+        throw new Error('请求超时')
+      }
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+  
+  // 加载更多消息
+  const loadMoreMessages = async () => {
+    if (!hasMore.value || loading.value) return
+    
+    try {
+      error.value = null
+      loading.value = true
+      
+      // 检查网络状态
+      if (!navigator.onLine) {
+        throw new Error('网络连接已断开')
+      }
+      
+      const lastId = messages.value[0]?.id
+      const response = await request.get('/messages', {
+        params: {
+          before: lastId,
+          limit: 20
+        }
+      })
+      
+      const newMessages = response.data.map(msg => ({
+        ...msg,
+        formattedTime: formatTimestamp(msg.timestamp)
+      }))
+      
+      if (newMessages.length < 20) {
+        hasMore.value = false
+      }
+      
+      messages.value.unshift(...newMessages)
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+  
+  // 测试连接
+  const testConnection = async () => {
+    try {
+      error.value = null
+      const response = await request.get('/health')
+      return {
+        status: 'success',
+        timestamp: formatTimestamp(Date.now()),
+        ...response
+      }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    }
+  }
+  
+  // 测试流式响应
+  const testStreamResponse = async ({ onMessage, onProgress }) => {
+    const mockText = '这是一个模拟的流式响应测试。我们将逐字发送这段文字，以模拟AI回答时的打字效果。'
+    const chars = mockText.split('')
+    let content = ''
+    
+    try {
+      error.value = null
+      
+      for (let i = 0; i < chars.length; i++) {
+        // 模拟网络延迟
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
+        content += chars[i]
+        onMessage(chars[i])
+        onProgress(Math.floor((i + 1) / chars.length * 100))
+        
+        // 随机模拟错误
+        if (Math.random() < 0.01) {
+          throw new Error('模拟的流式响应错误')
+        }
+      }
+      
+      return {
+        status: 'success',
+        content,
+        timestamp: Date.now()
+      }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    }
+  }
+  
+  return {
+    messages,
+    loading,
+    hasMore,
+    error,
+    sendMessage,
+    loadMoreMessages,
+    testConnection,
+    testStreamResponse
+  }
+})
+```
+现在我们已经完成了通信测试组件的升级。主要改进包括：
+
+1. 新增测试场景：
+   - 普通消息测试
+   - 并发请求测试
+   - 超时测试
+   - 断网测试
+   - 流式响应测试
+
+2. 错误处理增强：
+   - 网络状态检查
+   - 请求超时处理
+   - 错误状态管理
+   - 友好的错误提示
+
+3. 测试配置选项：
+   - 测试类型选择
+   - 模拟错误开关
+   - 模拟延迟设置
+
+4. UI改进：
+   - 流式响应显示区域
+   - 进度条显示
+   - 错误信息展示
+   - 测试状态反馈
+
+您现在可以进行以下测试：
+
+1. 基础消息发送测试：
+   - 输入测试消息
+   - 选择消息类型（笔记/聊天/AI问答）
+   - 点击"发送测试消息"按钮
+
+2. 错误场景测试：
+   - 打开"模拟错误"开关
+   - 设置延迟时间
+   - 选择不同的测试类型（并发/超时/断网）
+
+3. 流式响应测试：
+   - 点击"测试流式响应"按钮
+   - 观察打字效果和进度条
+
+您想先测试哪个场景？
+
+
