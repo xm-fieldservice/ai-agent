@@ -16,6 +16,7 @@
       "search.exclude": {
         "**/node_modules": true,
         "**/dist": true
-      }
+      },
+      "powershell.cwd": "🔍 手机入口 (mobile)"
     }
    }
