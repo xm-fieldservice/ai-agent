@@ -1,0 +1,30 @@
+:root {
+  // 颜色变量
+  --primary-color: #{$primary-color};
+  --success-color: #{$success-color};
+  --warning-color: #{$warning-color};
+  --error-color: #{$error-color};
+  --text-color: #{$text-color};
+  --text-color-secondary: #{$text-color-secondary};
+  --text-color-light: #{$text-color-light};
+  --border-color: #{$border-color};
+  --background-color: #{$background-color};
+
+  // 间距
+  --spacing-xs: #{$spacing-xs};
+  --spacing-sm: #{$spacing-sm};
+  --spacing-base: #{$spacing-base};
+  --spacing-lg: #{$spacing-lg};
+  --spacing-xl: #{$spacing-xl};
+
+  // 圆角
+  --border-radius-sm: #{$border-radius-sm};
+  --border-radius-base: #{$border-radius-base};
+  --border-radius-lg: #{$border-radius-lg};
+  --border-radius-circle: #{$border-radius-circle};
+
+  // 阴影
+  --shadow-sm: #{$shadow-sm};
+  --shadow-base: #{$shadow-base};
+  --shadow-lg: #{$shadow-lg};
+} 

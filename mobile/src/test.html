@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>AI助手 - 测试模式</title>
+  <style>
+    /* 测试面板样式 */
+    .test-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      z-index: 9999;
+      font-family: monospace;
+      font-size: 12px;
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(180px);
+      transition: transform 0.3s;
+    }
+    
+    .test-panel.expanded {
+      transform: translateY(0);
+    }
+    
+    .test-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .test-panel-toggle {
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .test-panel-content {
+      flex: 1;
+      overflow-y: auto;
+      white-space: pre;
+    }
+    
+    .test-panel-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .test-panel button {
+      background-color: #333;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 3px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    
+    .test-panel button:hover {
+      background-color: #444;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  
+  <!-- 测试面板 -->
+  <div class="test-panel">
+    <div class="test-panel-header">
+      <span class="test-panel-toggle" onclick="togglePanel()">▲ 测试面板</span>
+      <span>AI助手 - 测试模式</span>
+    </div>
+    <div class="test-panel-content" id="test-output"></div>
+    <div class="test-panel-controls">
+      <button onclick="generateTestData()">生成测试数据</button>
+      <button onclick="clearLogs()">清除日志</button>
+      <button onclick="showPerformance()">性能指标</button>
+      <button onclick="showNetwork()">网络请求</button>
+      <button onclick="toggleOffline()">模拟离线</button>
+    </div>
+  </div>
+  
+  <script>
+    // 测试面板控制
+    function togglePanel() {
+      document.querySelector('.test-panel').classList.toggle('expanded');
+    }
+    
+    // 显示内容到测试面板
+    function showToPanel(content) {
+      const output = document.getElementById('test-output');
+      output.textContent = typeof content === 'object' 
+        ? JSON.stringify(content, null, 2) 
+        : content;
+    }
+    
+    // 生成测试数据
+    function generateTestData() {
+      if (window.generateTestData) {
+        window.generateTestData();
+        showToPanel('测试数据已生成');
+      }
+    }
+    
+    // 清除日志
+    function clearLogs() {
+      if (window.monitoring && window.monitoring.logger) {
+        window.monitoring.logger.clearLogs();
+        showToPanel('日志已清除');
+      }
+    }
+    
+    // 显示性能指标
+    function showPerformance() {
+      if (window.monitoring && window.monitoring.performanceMonitor) {
+        const report = window.monitoring.performanceMonitor.getPerformanceReport();
+        showToPanel(report);
+      }
+    }
+    
+    // 显示网络请求
+    function showNetwork() {
+      if (window.monitoring && window.monitoring.networkMonitor) {
+        const stats = window.monitoring.networkMonitor.getNetworkStats();
+        showToPanel(stats);
+      }
+    }
+    
+    // 模拟离线
+    function toggleOffline() {
+      const isOffline = !navigator.onLine;
+      if (isOffline) {
+        window.dispatchEvent(new Event('online'));
+        showToPanel('已恢复在线状态');
+      } else {
+        window.dispatchEvent(new Event('offline'));
+        showToPanel('已切换到离线状态');
+      }
+    }
+    
+    // 默认展开测试面板
+    setTimeout(() => {
+      document.querySelector('.test-panel').classList.add('expanded');
+    }, 1000);
+  </script>
+  
+  <!-- 主脚本 -->
+  <script type="module" src="/src/main-test.ts"></script>
+</body>
+</html> 

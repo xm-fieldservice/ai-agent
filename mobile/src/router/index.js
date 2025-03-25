@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import PWATest from '../pages/PWATest.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: () => import('../views/Home.vue')
+    redirect: '/pwa-test'
   },
   {
-    path: '/test',
-    name: 'test',
-    component: () => import('../components/CommunicationTest.vue')
+    path: '/pwa-test',
+    name: 'PWATest',
+    component: PWATest
   }
 ]
 

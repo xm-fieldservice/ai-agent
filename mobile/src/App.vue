@@ -1,16 +1,22 @@
 <template>
   <div id="app" :class="{ 'keyboard-open': isKeyboardOpen }">
+    <NetworkStatus />
+    <GestureFeedback />
     <router-view v-slot="{ Component }">
       <keep-alive>
         <component :is="Component" />
       </keep-alive>
     </router-view>
+    <InstallPrompt />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { initMobileAdapter, updateLayout } from './utils/mobileAdapter'
+import InstallPrompt from './components/InstallPrompt.vue'
+import NetworkStatus from './components/NetworkStatus.vue'
+import GestureFeedback from './components/GestureFeedback.vue'
 
 const isKeyboardOpen = ref(false)
 
@@ -46,6 +52,10 @@ onBeforeUnmount(() => {
 
 <style lang="scss">
 #app {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  background-color: var(--background-color);
   min-height: 100vh;
   min-height: calc(var(--window-height, 100vh) - var(--keyboard-height, 0px));
   padding-top: var(--safe-area-top, 0px);
