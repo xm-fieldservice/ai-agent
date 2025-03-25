@@ -1,4 +1,2345 @@
 
+# AI助手移动端模块
+
+本文档介绍AI助手移动端模块的架构、功能和使用方法。
+
+## 目录
+
+- [项目介绍](#项目介绍)
+- [功能特性](#功能特性)
+- [快速开始](#快速开始)
+- [目录结构](#目录结构)
+- [PWA功能](#pwa功能)
+- [移动端适配](#移动端适配)
+- [监控与调试](#监控与调试)
+- [测试指南](#测试指南)
+- [部署指南](#部署指南)
+- [常见问题](#常见问题)
+
+## 项目介绍
+
+AI助手移动端模块是一个基于Vue 3、TypeScript和Vite构建的移动端PWA应用。它提供了完整的离线支持、安装提示和移动端适配优化，为用户提供流畅的AI助手体验。
+
+### 技术栈
+
+- **前端框架**: Vue 3 + TypeScript
+- **构建工具**: Vite
+- **UI组件库**: Vant
+- **路由管理**: Vue Router
+- **PWA支持**: Service Worker + Web Manifest
+- **测试框架**: Jest
+
+## 功能特性
+
+### PWA支持
+- ✅ 完整的离线访问支持
+- ✅ 应用安装提示
+- ✅ 后台同步能力
+- ✅ 自动更新检测
+
+### 移动端优化
+- ✅ 键盘行为优化
+- ✅ 安全区域适配
+- ✅ 手势操作支持
+- ✅ 网络状态检测
+
+### 监控与调试
+- ✅ 完整的日志系统
+- ✅ 性能指标采集
+- ✅ 网络请求监控
+- ✅ 测试环境支持
+
+## 快速开始
+
+### 安装依赖
+
+```bash
+# 进入移动端目录
+cd mobile
+
+# 安装依赖
+npm install
+```
+
+### 启动开发服务器
+
+```bash
+# 开发模式
+npm run dev
+
+# 测试模式（带调试面板）
+npm run dev -- --config vite.test.config.js
+```
+
+### 构建项目
+
+```bash
+# 构建生产版本
+npm run build
+
+# 预览生产版本
+npm run preview
+```
+
+### 运行测试
+
+```bash
+# 运行所有测试
+npm run test
+
+# 带覆盖率报告
+npm run test:coverage
+```
+
+## 目录结构
+
+```
+mobile/
+├── public/               # 静态资源
+│   ├── icons/            # 应用图标
+│   ├── manifest.json     # PWA配置
+│   ├── sw.js             # Service Worker
+│   └── offline.html      # 离线页面
+├── src/
+│   ├── components/       # 组件目录
+│   │   ├── InstallPrompt.vue     # 安装提示组件
+│   │   ├── NetworkStatus.vue     # 网络状态组件
+│   │   └── GestureFeedback.vue   # 手势反馈组件
+│   ├── pwa/              # PWA相关功能
+│   │   └── register-service-worker.js
+│   ├── router/           # 路由配置
+│   ├── utils/            # 工具函数
+│   │   ├── mobileAdapter.ts       # 移动端适配工具
+│   │   ├── logger.ts              # 日志系统
+│   │   ├── performance.ts         # 性能监控
+│   │   ├── network-monitor.ts     # 网络监控
+│   │   └── monitor.ts             # 监控统一接口
+│   ├── views/            # 页面组件
+│   ├── App.vue           # 根组件
+│   ├── main.ts           # 入口文件
+│   └── main-test.ts      # 测试入口
+├── tests/                # 测试文件
+│   ├── setup.js          # 测试环境配置
+│   └── __tests__/        # 测试用例
+├── vite.config.ts        # Vite配置
+└── jest.config.js        # Jest配置
+```
+
+## PWA功能
+
+### Service Worker
+
+Service Worker提供了离线缓存和后台同步功能，它的主要功能包括：
+
+1. **缓存策略**：
+   - 静态资源：缓存优先
+   - API请求：网络优先，离线时使用缓存
+   - 动态内容：网络优先，并更新缓存
+
+2. **离线支持**：
+   - 当网络不可用时，自动提供离线页面
+   - 缓存关键资源，确保基础功能可用
+
+3. **更新机制**：
+   - 自动检测新版本
+   - 提示用户刷新使用新版本
+
+使用示例：
+
+```javascript
+// 注册Service Worker
+import { registerServiceWorker } from '@/pwa/register-service-worker';
+
+// 在应用启动时调用
+registerServiceWorker();
+```
+
+### 安装提示
+
+当用户可以安装应用时，会显示自定义的安装提示，引导用户安装到桌面：
+
+```javascript
+// 显示安装提示
+import { showInstallPrompt } from '@/pwa/register-service-worker';
+
+// 手动触发安装提示
+showInstallPrompt();
+```
+
+InstallPrompt组件提供了美观的安装界面，自动处理安装流程。
+
+## 移动端适配
+
+### 移动端适配工具
+
+`mobileAdapter.ts`提供了全面的移动端适配功能：
+
+1. **设备检测**：
+   ```typescript
+   import { isIOS, isAndroid, isMobile } from '@/utils/mobileAdapter';
+   
+   if (isIOS) {
+     // iOS特定处理
+   }
+   ```
+
+2. **键盘处理**：
+   ```typescript
+   import { keyboardHeight, isKeyboardVisible } from '@/utils/mobileAdapter';
+   
+   // 响应式使用键盘高度
+   const contentHeight = computed(() => {
+     return `calc(100vh - ${keyboardHeight.value}px)`;
+   });
+   ```
+
+3. **安全区域**：
+   ```scss
+   // 在CSS中使用
+   .safe-container {
+     padding-top: var(--safe-area-top);
+     padding-bottom: var(--safe-area-bottom);
+   }
+   ```
+
+4. **手势支持**：
+   - 下拉刷新：从页面顶部下拉触发刷新
+   - 返回手势：从屏幕左边缘右滑触发返回
+   - 自定义手势：通过监听`pullToRefresh`和`backGesture`事件使用
+
+初始化方法：
+
+```typescript
+import { initMobileAdapter } from '@/utils/mobileAdapter';
+
+// 在应用启动时初始化
+initMobileAdapter();
+```
+
+## 监控与调试
+
+### 日志系统
+
+日志系统提供了统一的日志记录和管理：
+
+```typescript
+import logger, { LogLevel, LogType } from '@/utils/logger';
+
+// 记录不同级别的日志
+logger.debug('调试信息');
+logger.info('普通信息');
+logger.warn('警告信息');
+logger.error('错误信息', new Error('发生错误'));
+
+// 记录特定类型的日志
+logger.info('网络请求完成', { url: '/api/data' }, LogType.NETWORK);
+
+// 获取日志
+const allLogs = logger.getLogs();
+const errorLogs = logger.getLogs(LogLevel.ERROR);
+```
+
+### 性能监控
+
+性能监控工具自动采集Web Vitals等性能指标，同时支持自定义性能度量：
+
+```typescript
+import performanceMonitor from '@/utils/performance';
+
+// 自定义性能测量
+const duration = performanceMonitor.measure('操作耗时', 'start-mark', 'end-mark');
+
+// 获取性能报告
+const report = performanceMonitor.getPerformanceReport();
+```
+
+### 网络监控
+
+网络监控工具拦截和记录所有网络请求：
+
+```typescript
+import networkMonitor from '@/utils/network-monitor';
+
+// 获取请求记录
+const requests = networkMonitor.getRequests();
+
+// 获取网络统计
+const stats = networkMonitor.getNetworkStats();
+```
+
+### 统一监控接口
+
+```typescript
+import { initMonitoring } from '@/utils/monitor';
+
+// 初始化所有监控
+const monitoring = initMonitoring({
+  environment: 'development',
+  appVersion: '1.0.0',
+  logger: {
+    enabled: true,
+    logLevel: 'info'
+  }
+});
+```
+
+## 测试指南
+
+### 单元测试
+
+使用Jest运行单元测试：
+
+```bash
+# 运行所有测试
+npm run test
+
+# 运行特定测试
+npm run test -- -t "日志系统"
+```
+
+### 手动测试
+
+可以使用测试面板进行手动测试：
+
+1. 启动测试模式：`npm run dev -- --config vite.test.config.js`
+2. 使用测试面板生成测试数据和查看监控信息
+3. 使用网络模拟功能测试离线行为
+
+## 部署指南
+
+### 构建优化
+
+1. **图片优化**：
+   - 使用WebP格式
+   - 提供多种尺寸的图标
+
+2. **代码分割**：
+   - 路由级别代码分割
+   - 懒加载非关键组件
+
+3. **资源压缩**：
+   - 启用Brotli/Gzip压缩
+   - 最小化CSS/JS文件
+
+### 部署步骤
+
+1. 构建项目：`npm run build`
+2. 测试生产版本：`npm run preview`
+3. 将`dist`目录部署到Web服务器
+4. 确保服务器配置正确的MIME类型和缓存控制
+5. 配置HTTPS（PWA必需）
+
+## 常见问题
+
+### Service Worker不工作
+
+**问题**：Service Worker未注册或未激活。
+
+**解决方案**：
+- 确保使用HTTPS或localhost
+- 检查Service Worker注册代码
+- 清除浏览器缓存后重试
+
+### 安装提示不显示
+
+**问题**：PWA安装提示没有显示。
+
+**解决方案**：
+- 确保manifest.json配置正确
+- 确保用户未安装过应用
+- 确保满足PWA安装条件（HTTPS、有图标等）
+
+### 移动端适配问题
+
+**问题**：某些设备上的样式不正确。
+
+**解决方案**：
+- 检查CSS变量计算
+- 确保使用了正确的视口设置
+- 使用设备特定的样式修复
+
+### 性能监控失败
+
+**问题**：性能指标未收集。
+
+**解决方案**：
+- 确保浏览器支持Performance API
+- 检查控制台错误信息
+- 降级处理不支持的浏览器
+
+---
+
+如有更多问题，请联系开发团队。
+
+# AI助手移动端功能说明
+
+本文档详细介绍AI助手移动端模块的核心功能实现和技术细节。
+
+## PWA功能详解
+
+### 1. Service Worker缓存策略
+
+Service Worker采用三层缓存策略：
+
+- **静态缓存 (STATIC_CACHE)**
+  - 用于存储应用核心静态资源
+  - 安装时预缓存关键资源
+  - 使用缓存优先策略
+
+```javascript
+// 静态资源处理
+async function handleStaticRequest(request) {
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    const response = await fetch(request);
+    const cache = await caches.open(STATIC_CACHE);
+    cache.put(request, response.clone());
+    return response;
+  } catch (error) {
+    if (request.mode === 'navigate') {
+      return caches.match('/offline.html');
+    }
+    throw error;
+  }
+}
+```
+
+- **动态缓存 (DYNAMIC_CACHE)**
+  - 用于存储运行时动态资源
+  - 网络优先，自动更新缓存
+  - 离线时回退到缓存版本
+
+- **API缓存 (API_CACHE)**
+  - 专用于API请求响应
+  - 网络优先策略
+  - 为离线操作提供数据支持
+
+### 2. 应用更新机制
+
+Service Worker实现了优雅的应用更新流程：
+
+1. 检测新版本：使用`updatefound`事件监听更新
+2. 通知用户：当新Service Worker安装完成时通知用户
+3. 刷新应用：用户确认后刷新页面，应用新版本
+
+```javascript
+// 监听更新
+registration.addEventListener('updatefound', () => {
+  const newWorker = registration.installing;
+  newWorker.addEventListener('statechange', () => {
+    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+      showToast({
+        type: 'success',
+        message: '发现新版本，请刷新使用',
+        duration: 5000
+      });
+    }
+  });
+});
+```
+
+### 3. 安装体验优化
+
+安装提示组件(InstallPrompt)使用以下技术提升用户体验：
+
+- 使用`beforeinstallprompt`事件捕获安装机会
+- 提供自定义UI替代原生提示
+- 准确跟踪安装结果
+- 支持延迟安装和稍后提醒
+
+## 移动端适配技术详解
+
+### 1. 设备检测机制
+
+移动端适配工具通过用户代理检测设备类型，并应用相应的优化：
+
+```typescript
+// 设备信息检测
+export const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+export const isAndroid = /Android/.test(navigator.userAgent);
+export const isMobile = isIOS || isAndroid;
+```
+
+设备检测结果用于：
+- 加载设备特定CSS类
+- 激活平台特定行为
+- 优化输入体验
+- 调整手势识别参数
+
+### 2. 响应式布局系统
+
+移动端适配核心是基于CSS变量的响应式布局系统：
+
+```typescript
+// 更新布局变量
+export function updateLayout() {
+  document.documentElement.style.setProperty('--window-height', `${windowHeight.value}px`);
+  document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight.value}px`);
+  document.documentElement.style.setProperty('--safe-area-top', `${safeAreaTop.value}px`);
+  document.documentElement.style.setProperty('--safe-area-bottom', `${safeAreaBottom.value}px`);
+}
+```
+
+该系统确保：
+- 应用响应键盘状态变化
+- 自动适应设备安全区域
+- 处理横竖屏切换
+- 优化各种输入情境
+
+### 3. 高级手势识别
+
+应用实现了基于原生触摸事件的高级手势系统：
+
+```typescript
+// 下拉刷新手势
+document.addEventListener('touchmove', (e) => {
+  if (document.scrollingElement?.scrollTop === 0 && e.touches[0].clientY > touchStartY) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+document.addEventListener('touchend', (e) => {
+  const touchEndY = e.changedTouches[0].clientY;
+  const touchEndTime = Date.now();
+  
+  // 判断是否为快速下拉
+  if (touchEndY - touchStartY > 100 && touchEndTime - touchStartTime < 300) {
+    // 触发下拉刷新事件
+    window.dispatchEvent(new CustomEvent('pullToRefresh'));
+  }
+}, { passive: true });
+```
+
+手势系统支持：
+- 下拉刷新：触发页面刷新
+- 返回手势：模拟iOS原生返回体验
+- 自定义事件：允许组件响应手势
+
+## 监控系统架构
+
+### 1. 日志系统设计
+
+日志系统采用分层架构：
+
+- **核心记录层**：处理日志创建、存储和过滤
+- **类型系统**：支持日志级别和类型分类
+- **持久化**：支持本地和远程日志存储
+- **查询API**：提供灵活的日志检索能力
+
+关键特性：
+- 自动收集设备和上下文信息
+- 支持结构化日志和自定义字段
+- 内置全局错误捕获
+- 支持日志限流和容量管理
+
+### 2. 性能监控实现
+
+性能监控基于Performance API和PerformanceObserver：
+
+```typescript
+// 观察最大内容绘制 (LCP)
+private observeLCP() {
+  try {
+    const lcpObserver = new PerformanceObserver((entryList) => {
+      const entries = entryList.getEntries();
+      const lastEntry = entries[entries.length - 1];
+      this.largestContentfulPaint = lastEntry.startTime;
+      
+      this.addMetric({
+        name: 'Largest Contentful Paint',
+        value: this.largestContentfulPaint,
+        type: MetricType.LCP,
+        timestamp: Date.now()
+      });
+    });
+    
+    lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+  } catch (error) {
+    logger.error('LCP观察失败', error, LogType.PERFORMANCE);
+  }
+}
+```
+
+自动收集以下指标：
+- Core Web Vitals (LCP, FID, CLS)
+- 首次内容绘制 (FCP)
+- 首字节时间 (TTFB)
+- 长任务 (Long Tasks)
+- 自定义性能标记
+
+### 3. 网络监控技术
+
+网络监控通过拦截Fetch API实现全面请求跟踪：
+
+```typescript
+// 拦截fetch请求
+private interceptFetch() {
+  const self = this;
+  window.fetch = function(input, init) {
+    const requestId = `req_${Date.now()}_${self.requestCounter++}`;
+    const startTime = Date.now();
+    
+    // 创建请求记录
+    const requestRecord = {
+      id: requestId,
+      url: typeof input === 'string' ? input : input.url,
+      method: init?.method || 'GET',
+      startTime,
+      requestStatus: RequestStatus.PENDING
+    };
+    
+    // 监控请求生命周期...
+  }
+}
+```
+
+网络监控功能：
+- 请求速度和大小统计
+- 错误跟踪和分析
+- 自动关联日志和请求
+- 支持请求/响应内容检查（可配置）
+
+## 测试架构
+
+### 1. 单元测试策略
+
+测试环境采用Jest + Vue Test Utils，重点测试以下方面：
+
+- **组件测试**：验证UI组件渲染和互动
+- **工具函数**：确保核心工具函数正确性
+- **监控系统**：验证日志、性能和网络监控
+- **PWA功能**：测试Service Worker和安装流程
+
+测试覆盖策略：
+- 核心业务逻辑：90%+覆盖率
+- UI组件：关键路径测试
+- 工具函数：完整单元测试
+- 第三方集成：模拟和集成测试
+
+### 2. 测试环境隔离
+
+测试环境提供完整的浏览器API模拟：
+
+```javascript
+// 模拟Performance API
+global.performance = {
+  getEntriesByType: jest.fn().mockReturnValue([]),
+  measure: jest.fn().mockReturnValue({ duration: 100 }),
+  mark: jest.fn()
+};
+
+// 模拟PerformanceObserver
+class PerformanceObserver {
+  observe() {}
+  disconnect() {}
+}
+
+global.PerformanceObserver = PerformanceObserver;
+```
+
+环境隔离确保：
+- 测试的可重复性
+- 环境一致性
+- 模拟外部依赖
+- 控制测试时间和状态
+
+### 3. 端到端测试
+
+端到端测试使用测试面板进行手动测试和验证：
+
+- 集成测试面板提供实时数据视图
+- 支持模拟网络状态变化
+- 允许触发测试事件
+- 提供性能和请求统计
+
+## 技术亮点
+
+### 1. 性能优化
+
+采用了多项技术提升应用性能：
+
+- **资源优化**
+  - 图片懒加载和优化
+  - 代码分割和懒加载
+  - 预加载关键资源
+  - 使用轻量级UI组件库
+
+- **渲染优化**
+  - 虚拟列表渲染
+  - DOM更新批处理
+  - 避免布局抖动
+  - 使用CSS硬件加速
+
+- **缓存策略**
+  - 多层缓存架构
+  - 精确的缓存失效策略
+  - 预缓存关键资源
+  - 动态内容缓存管理
+
+### 2. 扩展性设计
+
+模块化设计确保高扩展性：
+
+- **插件架构**：核心功能通过插件扩展
+- **事件系统**：组件通过事件通信
+- **API抽象**：底层实现与API分离
+- **配置驱动**：通过配置而非硬编码控制行为
+
+### 3. 安全考量
+
+应用实现了多层安全机制：
+
+- **内容安全策略**：严格CSP防止XSS
+- **安全存储**：敏感数据使用安全存储
+- **API保护**：请求验证和防护
+- **异常隔离**：错误不影响核心功能
+
+## 扩展和集成指南
+
+### 1. 与后端集成
+
+移动端模块设计为易于与后端服务集成：
+
+```typescript
+// 配置API基础路径
+const apiConfig = {
+  baseURL: process.env.API_BASE_URL || '/api',
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+};
+
+// 创建API客户端
+const apiClient = createApiClient(apiConfig);
+
+// 注册监控中间件
+apiClient.use(networkMonitor.createMiddleware());
+```
+
+集成指南：
+- 配置API端点和认证
+- 实现请求/响应拦截器
+- 配置错误处理和重试策略
+- 添加离线操作支持
+
+### 2. LLM集成
+
+应用支持与LLM服务的无缝集成：
+
+- **会话管理**：支持长对话上下文
+- **流式响应**：支持流式文本输出
+- **提示模板**：内置常用提示模板
+- **多模型支持**：可配置不同模型后端
+
+### 3. 分析集成
+
+监控系统设计为可与第三方分析服务集成：
+
+- 支持Google Analytics
+- 支持自定义分析端点
+- 提供事件标准化
+- 支持用户行为跟踪
+
+## 未来规划
+
+### 1. 功能增强
+
+计划中的功能增强：
+
+- **离线编辑**：完整的离线内容编辑
+- **同步系统**：增强的数据同步机制
+- **多媒体支持**：语音输入和图像分析
+- **主题系统**：可自定义的主题和样式
+
+### 2. 性能优化
+
+未来性能优化方向：
+
+- **渲染性能**：进一步优化列表渲染
+- **网络优化**：实现请求优先级和预加载
+- **存储优化**：优化本地数据存储
+- **启动优化**：减少首屏加载时间
+
+### 3. 平台扩展
+
+扩展支持的平台：
+
+- **桌面PWA**：优化桌面体验
+- **原生封装**：使用Capacitor封装为原生应用
+- **小程序适配**：支持微信小程序等平台
+- **更多浏览器**：扩展浏览器兼容性
+
+---
+
+# AI助手移动端开发指南
+
+本文档提供AI助手移动端模块的开发指南、最佳实践和常见问题解决方案。
+
+## 开发环境设置
+
+### 开发工具推荐
+
+- **编辑器**: VS Code
+- **浏览器**: Chrome (开发) + Safari (iOS测试) + 安卓浏览器
+- **调试工具**: Chrome DevTools + Vue DevTools
+- **移动设备**: iOS/Android真机或模拟器
+
+### 环境配置
+
+1. **安装Node.js**: 推荐使用v16以上
+   ```bash
+   # 使用nvm管理多版本Node.js
+   nvm install 16
+   nvm use 16
+   ```
+
+2. **安装项目依赖**:
+   ```bash
+   cd mobile
+   npm install
+   ```
+
+3. **配置环境变量**:
+   在项目根目录创建`.env.local`文件进行本地开发配置：
+   ```
+   # API配置
+   VITE_API_BASE_URL=/api
+   
+   # 开发模式
+   VITE_APP_MODE=development
+   
+   # 日志级别
+   VITE_LOG_LEVEL=debug
+   ```
+
+## 开发流程
+
+### 创建新组件
+
+1. **组件命名规范**:
+   - 使用PascalCase命名组件文件和组件名
+   - 使用功能描述性命名，如`MessageInput.vue`
+
+2. **组件结构**:
+   ```vue
+   <template>
+     <!-- 组件模板，使用kebab-case命名CSS类 -->
+     <div class="message-input">
+       <!-- 内容 -->
+     </div>
+   </template>
+   
+   <script setup lang="ts">
+   // 导入
+   import { ref, computed, onMounted } from 'vue';
+   import logger from '@/utils/logger';
+   
+   // Props定义
+   const props = defineProps<{
+     placeholder?: string;
+     maxLength?: number;
+   }>();
+   
+   // 事件定义
+   const emit = defineEmits<{
+     (e: 'send', message: string): void;
+     (e: 'typing'): void;
+   }>();
+   
+   // 响应式状态
+   const message = ref('');
+   
+   // 计算属性
+   const isValid = computed(() => message.value.trim().length > 0);
+   
+   // 方法
+   const sendMessage = () => {
+     if (!isValid.value) return;
+     
+     emit('send', message.value);
+     message.value = '';
+     logger.info('消息已发送');
+   };
+   
+   // 生命周期钩子
+   onMounted(() => {
+     // 初始化逻辑
+   });
+   </script>
+   
+   <style lang="scss" scoped>
+   .message-input {
+     // 样式定义
+     display: flex;
+     align-items: center;
+     padding: var(--spacing-sm);
+     
+     // 嵌套选择器
+     &__field {
+       flex: 1;
+     }
+     
+     &__button {
+       margin-left: var(--spacing-xs);
+     }
+   }
+   </style>
+   ```
+
+3. **组件注册**:
+   ```typescript
+   // 在父组件中使用
+   import MessageInput from '@/components/MessageInput.vue';
+   ```
+
+### 状态管理
+
+1. **局部状态**:
+   使用Vue的`ref`、`reactive`和`computed`管理组件内状态。
+
+2. **组件间通信**:
+   - Props传递数据 (父->子)
+   - Emits传递事件 (子->父)
+   - Provide/Inject (跨多层组件)
+   - 事件总线 (非相关组件)
+
+3. **全局状态**:
+   - 使用Vue的`provide`/`inject`API创建全局上下文
+   - 使用简单的reactive状态共享模式
+
+## 模块开发指南
+
+### PWA功能开发
+
+1. **Service Worker修改**:
+   ```javascript
+   // 在public/sw.js中添加新的缓存策略
+   self.addEventListener('fetch', (event) => {
+     // 实现缓存策略
+     if (event.request.url.includes('/api/v1/messages')) {
+       // 消息API使用网络优先策略
+       event.respondWith(
+         fetch(event.request)
+           .then(response => {
+             // 缓存副本
+             const clone = response.clone();
+             caches.open(API_CACHE).then(cache => {
+               cache.put(event.request, clone);
+             });
+             return response;
+           })
+           .catch(() => {
+             // 网络失败时使用缓存
+             return caches.match(event.request);
+           })
+       );
+       return;
+     }
+     // 其他请求...
+   });
+   ```
+
+2. **离线功能扩展**:
+   ```javascript
+   // 添加后台同步
+   self.addEventListener('sync', (event) => {
+     if (event.tag === 'sync-messages') {
+       // 同步离线消息
+       event.waitUntil(syncOfflineMessages());
+     }
+   });
+   
+   // 实现具体同步功能
+   async function syncOfflineMessages() {
+     try {
+       // 从indexedDB获取离线消息
+       const offlineMessages = await getOfflineMessages();
+       
+       // 发送到服务器
+       for (const message of offlineMessages) {
+         await fetch('/api/messages', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify(message)
+         });
+         
+         // 更新状态
+         await markMessageAsSynced(message.id);
+       }
+     } catch (error) {
+       console.error('离线消息同步失败', error);
+     }
+   }
+   ```
+
+### 移动端适配开发
+
+1. **添加新手势**:
+   ```typescript
+   // 在mobileAdapter.ts中添加新手势
+   function initPinchZoomGesture() {
+     let initialDistance = 0;
+     let currentScale = 1;
+     
+     document.addEventListener('touchstart', (e) => {
+       if (e.touches.length === 2) {
+         initialDistance = getDistance(
+           e.touches[0].clientX, e.touches[0].clientY,
+           e.touches[1].clientX, e.touches[1].clientY
+         );
+       }
+     });
+     
+     document.addEventListener('touchmove', (e) => {
+       if (e.touches.length === 2) {
+         const currentDistance = getDistance(
+           e.touches[0].clientX, e.touches[0].clientY,
+           e.touches[1].clientX, e.touches[1].clientY
+         );
+         
+         currentScale = currentDistance / initialDistance;
+         
+         // 发出缩放事件
+         window.dispatchEvent(new CustomEvent('pinchZoom', {
+           detail: { scale: currentScale }
+         }));
+       }
+     });
+     
+     function getDistance(x1, y1, x2, y2) {
+       return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+     }
+   }
+   ```
+
+2. **设备特定优化**:
+   ```typescript
+   // 在组件中使用设备特定逻辑
+   import { isIOS, isAndroid } from '@/utils/mobileAdapter';
+   
+   // 设备特定样式
+   const containerClass = computed(() => {
+     return {
+       'ios-container': isIOS,
+       'android-container': isAndroid
+     };
+   });
+   
+   // 设备特定行为
+   const handleScroll = () => {
+     if (isIOS) {
+       // iOS特定滚动处理
+     } else {
+       // 默认滚动处理
+     }
+   };
+   ```
+
+### 监控系统开发
+
+1. **添加自定义日志类型**:
+   ```typescript
+   // 在logger.ts中扩展LogType
+   export enum LogType {
+     // 现有类型
+     OPERATION = 'operation',
+     ERROR = 'error',
+     PERFORMANCE = 'performance',
+     NETWORK = 'network',
+     
+     // 新增类型
+     VOICE = 'voice',       // 语音相关日志
+     SECURITY = 'security', // 安全相关日志
+     SYNC = 'sync'          // 同步相关日志
+   }
+   
+   // 使用新日志类型
+   logger.info('语音识别开始', {
+     duration: 5000,
+     language: 'zh-CN'
+   }, LogType.VOICE);
+   ```
+
+2. **监控系统集成**:
+   ```typescript
+   // 创建监控中间件
+   export function createMonitoringMiddleware() {
+     return {
+       request: (config) => {
+         // 添加性能标记
+         performance.mark(`request-${config.url}-start`);
+         return config;
+       },
+       response: (response) => {
+         const url = response.config.url;
+         
+         // 完成性能测量
+         performance.mark(`request-${url}-end`);
+         performanceMonitor.measure(
+           `API请求: ${url}`,
+           `request-${url}-start`,
+           `request-${url}-end`
+         );
+         
+         return response;
+       },
+       error: (error) => {
+         // 记录错误
+         logger.error('API请求失败', {
+           url: error.config.url,
+           status: error.response?.status,
+           message: error.message
+         }, LogType.NETWORK);
+         
+         return Promise.reject(error);
+       }
+     };
+   }
+   ```
+
+## 测试指南
+
+### 单元测试编写
+
+1. **组件测试**:
+   ```typescript
+   // 测试MessageInput组件
+   import { mount } from '@vue/test-utils';
+   import MessageInput from '@/components/MessageInput.vue';
+   
+   describe('MessageInput组件', () => {
+     it('应该正确渲染', () => {
+       const wrapper = mount(MessageInput, {
+         props: {
+           placeholder: '输入消息'
+         }
+       });
+       
+       // 检查DOM
+       expect(wrapper.find('.message-input').exists()).toBe(true);
+       expect(wrapper.find('input').attributes('placeholder')).toBe('输入消息');
+     });
+     
+     it('应该在点击发送按钮时触发send事件', async () => {
+       const wrapper = mount(MessageInput);
+       
+       // 设置输入值
+       await wrapper.find('input').setValue('测试消息');
+       
+       // 点击发送按钮
+       await wrapper.find('.send-button').trigger('click');
+       
+       // 检查事件
+       expect(wrapper.emitted('send')).toBeTruthy();
+       expect(wrapper.emitted('send')[0][0]).toBe('测试消息');
+       
+       // 检查输入框是否清空
+       expect(wrapper.find('input').element.value).toBe('');
+     });
+   });
+   ```
+
+2. **工具函数测试**:
+   ```typescript
+   // 测试格式化函数
+   import { formatDate, formatFileSize } from '@/utils/formatters';
+   
+   describe('格式化工具函数', () => {
+     describe('formatDate', () => {
+       it('应该格式化日期', () => {
+         const date = new Date('2023-12-31T12:00:00');
+         expect(formatDate(date)).toBe('2023-12-31 12:00:00');
+         expect(formatDate(date, 'YYYY-MM-DD')).toBe('2023-12-31');
+       });
+     });
+     
+     describe('formatFileSize', () => {
+       it('应该格式化文件大小', () => {
+         expect(formatFileSize(1024)).toBe('1 KB');
+         expect(formatFileSize(1024 * 1024)).toBe('1 MB');
+         expect(formatFileSize(1024 * 1024 * 1024)).toBe('1 GB');
+       });
+     });
+   });
+   ```
+
+### 模拟测试
+
+1. **网络请求模拟**:
+   ```typescript
+   // 模拟API请求
+   import { fetchMessages } from '@/api/messages';
+   
+   // 模拟fetch
+   global.fetch = jest.fn().mockImplementation(() => 
+     Promise.resolve({
+       ok: true,
+       json: () => Promise.resolve({ 
+         data: [
+           { id: 1, text: '测试消息1' },
+           { id: 2, text: '测试消息2' }
+         ]
+       })
+     })
+   );
+   
+   describe('消息API', () => {
+     it('应该获取消息列表', async () => {
+       const messages = await fetchMessages();
+       
+       // 检查fetch调用
+       expect(fetch).toHaveBeenCalledWith('/api/messages');
+       
+       // 检查结果
+       expect(messages).toHaveLength(2);
+       expect(messages[0].text).toBe('测试消息1');
+     });
+   });
+   ```
+
+2. **Service Worker测试**:
+   ```typescript
+   // 模拟Service Worker API
+   const mockRegistration = {
+     scope: '/test/',
+     update: jest.fn(),
+     unregister: jest.fn().mockResolvedValue(true),
+     active: { state: 'activated' },
+     installing: null
+   };
+   
+   navigator.serviceWorker.register = jest.fn().mockResolvedValue(mockRegistration);
+   
+   describe('Service Worker管理', () => {
+     it('应该注册Service Worker', async () => {
+       await registerServiceWorker();
+       
+       expect(navigator.serviceWorker.register).toHaveBeenCalledWith('/sw.js');
+     });
+     
+     it('应该检查更新', async () => {
+       await checkForUpdates();
+       
+       expect(mockRegistration.update).toHaveBeenCalled();
+     });
+   });
+   ```
+
+## 性能优化最佳实践
+
+### 渲染优化
+
+1. **使用虚拟列表**:
+   对于长列表，使用虚拟滚动避免DOM节点过多：
+   ```vue
+   <template>
+     <div class="message-list" ref="listRef">
+       <div class="message-list__container" :style="containerStyle">
+         <div
+           v-for="item in visibleItems"
+           :key="item.id"
+           class="message-item"
+           :style="{ transform: `translateY(${item.offsetY}px)` }"
+         >
+           {{ item.text }}
+         </div>
+       </div>
+     </div>
+   </template>
+   
+   <script setup>
+   import { ref, computed, onMounted, onUnmounted } from 'vue';
+   
+   const props = defineProps({
+     items: Array
+   });
+   
+   const listRef = ref(null);
+   const scrollTop = ref(0);
+   const itemHeight = 60; // 固定高度
+   
+   // 计算可见项
+   const visibleItems = computed(() => {
+     if (!props.items) return [];
+     
+     const listHeight = listRef.value?.clientHeight || 0;
+     const startIndex = Math.floor(scrollTop.value / itemHeight);
+     const endIndex = Math.min(
+       startIndex + Math.ceil(listHeight / itemHeight) + 1,
+       props.items.length
+     );
+     
+     return props.items.slice(startIndex, endIndex).map((item, index) => ({
+       ...item,
+       offsetY: (startIndex + index) * itemHeight
+     }));
+   });
+   
+   // 计算容器样式
+   const containerStyle = computed(() => ({
+     height: `${props.items.length * itemHeight}px`,
+     position: 'relative'
+   }));
+   
+   // 监听滚动
+   const handleScroll = () => {
+     scrollTop.value = listRef.value.scrollTop;
+   };
+   
+   onMounted(() => {
+     listRef.value.addEventListener('scroll', handleScroll);
+   });
+   
+   onUnmounted(() => {
+     listRef.value?.removeEventListener('scroll', handleScroll);
+   });
+   </script>
+   ```
+
+2. **避免大型组件**:
+   拆分复杂组件，避免不必要的重渲染：
+   ```vue
+   <!-- 错误做法：单一大组件 -->
+   <template>
+     <div class="chat-screen">
+       <!-- 头部 -->
+       <div class="chat-header">...</div>
+       
+       <!-- 消息列表 -->
+       <div class="message-list">
+         <div v-for="message in messages" :key="message.id">...</div>
+       </div>
+       
+       <!-- 输入区域 -->
+       <div class="message-input">...</div>
+     </div>
+   </template>
+   
+   <!-- 正确做法：拆分为子组件 -->
+   <template>
+     <div class="chat-screen">
+       <ChatHeader :title="title" />
+       <MessageList :messages="messages" />
+       <MessageInput @send="sendMessage" />
+     </div>
+   </template>
+   ```
+
+### 资源加载优化
+
+1. **图片优化**:
+   ```vue
+   <template>
+     <div class="avatar">
+       <!-- 使用响应式图片 -->
+       <img
+         :src="avatarSrc"
+         :srcset="`${avatarSrcSmall} 1x, ${avatarSrc} 2x`"
+         loading="lazy"
+         :alt="`${username}的头像`"
+       />
+     </div>
+   </template>
+   
+   <script setup>
+   const props = defineProps({
+     username: String,
+     avatarId: String
+   });
+   
+   // 根据设备分辨率和网络情况选择合适尺寸的图片
+   const avatarSrc = computed(() => `/api/avatars/${props.avatarId}/medium.webp`);
+   const avatarSrcSmall = computed(() => `/api/avatars/${props.avatarId}/small.webp`);
+   </script>
+   ```
+
+2. **路由懒加载**:
+   ```javascript
+   // router/index.js
+   const routes = [
+     {
+       path: '/',
+       component: () => import('@/views/Home.vue')
+     },
+     {
+       path: '/chat/:id',
+       component: () => import('@/views/Chat.vue')
+     },
+     {
+       path: '/settings',
+       component: () => import('@/views/Settings.vue')
+     }
+   ];
+   ```
+
+## 调试技巧
+
+### Chrome DevTools
+
+1. **性能分析**:
+   - 打开DevTools > Performance标签
+   - 点击Record开始记录
+   - 执行要测试的操作
+   - 点击Stop分析结果
+   - 检查渲染、脚本执行和布局时间
+
+2. **网络分析**:
+   - 打开DevTools > Network标签
+   - 启用Throttling模拟弱网环境
+   - 刷新页面查看资源加载瀑布图
+   - 检查缓存命中情况
+
+3. **应用调试**:
+   - 打开DevTools > Application标签
+   - 检查Service Worker状态和缓存
+   - 查看存储使用情况
+   - 模拟离线环境测试
+
+### 移动设备调试
+
+1. **远程调试**:
+   - 对于Android：使用Chrome的Remote Devices功能
+   - 对于iOS：使用Safari的Web Inspector
+
+2. **性能监控**:
+   使用`monitor.ts`暴露的API进行实时性能跟踪：
+   ```javascript
+   // 在控制台执行
+   window.monitoring.performanceMonitor.getPerformanceReport();
+   ```
+
+3. **网络请求调试**:
+   ```javascript
+   // 查看所有网络请求
+   window.monitoring.networkMonitor.getRequests();
+   
+   // 查看失败的请求
+   window.monitoring.networkMonitor.getRequests('error');
+   ```
+
+## 常见问题解决方案
+
+### iOS Safari特殊问题
+
+1. **键盘处理**:
+   ```typescript
+   // 解决iOS键盘弹出后页面不回弹问题
+   function fixIOSKeyboard() {
+     if (!isIOS) return;
+     
+     const inputs = document.querySelectorAll('input, textarea');
+     
+     inputs.forEach(input => {
+       input.addEventListener('blur', () => {
+         // 添加小延迟确保键盘完全收起
+         setTimeout(() => {
+           window.scrollTo(0, 0);
+         }, 100);
+       });
+     });
+   }
+   ```
+
+2. **底部安全区域**:
+   ```scss
+   // 修复底部安全区域
+   .app-footer {
+     padding-bottom: env(safe-area-inset-bottom);
+   }
+   ```
+
+### Android特殊问题
+
+1. **媒体权限**:
+   ```typescript
+   // 解决Android上媒体权限问题
+   async function requestMediaPermissions() {
+     try {
+       await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+       return true;
+     } catch (error) {
+       logger.error('无法获取媒体权限', error);
+       showPermissionPrompt();
+       return false;
+     }
+   }
+   ```
+
+2. **返回按钮处理**:
+   ```typescript
+   // 处理Android物理返回键
+   function handleAndroidBackButton() {
+     if (!isAndroid) return;
+     
+     window.addEventListener('popstate', (event) => {
+       // 自定义返回逻辑
+       if (modalIsOpen.value) {
+         event.preventDefault();
+         closeModal();
+         return;
+       }
+       
+       // 默认返回行为
+     });
+   }
+   ```
+
+### Service Worker问题
+
+1. **更新问题**:
+   ```javascript
+   // 强制更新Service Worker
+   async function forceUpdateServiceWorker() {
+     try {
+       // 获取所有SW注册
+       const registrations = await navigator.serviceWorker.getRegistrations();
+       
+       // 注销所有SW
+       await Promise.all(
+         registrations.map(registration => registration.unregister())
+       );
+       
+       // 清除所有缓存
+       const cacheNames = await caches.keys();
+       await Promise.all(
+         cacheNames.map(cacheName => caches.delete(cacheName))
+       );
+       
+       // 刷新页面
+       window.location.reload();
+     } catch (error) {
+       console.error('Service Worker强制更新失败', error);
+     }
+   }
+   ```
+
+2. **缓存问题**:
+   ```javascript
+   // 清理特定缓存
+   async function clearApiCache() {
+     const cache = await caches.open('api-v1');
+     
+     // 获取所有请求
+     const requests = await cache.keys();
+     
+     // 删除特定API的缓存
+     const targetRequests = requests.filter(request => 
+       request.url.includes('/api/messages')
+     );
+     
+     await Promise.all(
+       targetRequests.map(request => cache.delete(request))
+     );
+     
+     console.log(`已清理${targetRequests.length}个消息API缓存`);
+   }
+   ```
+
+## 贡献指南
+
+### 代码提交规范
+
+1. **提交信息格式**:
+   ```
+   <类型>(<范围>): <简短描述>
+   
+   <详细描述>
+   
+   <关联问题>
+   ```
+
+   类型包括：
+   - `feat`: 新功能
+   - `fix`: 修复Bug
+   - `docs`: 文档变更
+   - `style`: 样式调整
+   - `refactor`: 代码重构
+   - `perf`: 性能优化
+   - `test`: 测试相关
+   - `build`: 构建相关
+   - `ci`: CI相关
+
+2. **分支规范**:
+   - `main`: 主分支，保持稳定可发布状态
+   - `develop`: 开发分支
+   - `feature/*`: 功能分支
+   - `fix/*`: 修复分支
+   - `release/*`: 发布分支
+
+### 代码评审清单
+
+在提交代码评审前，确保：
+
+1. **功能完整性**:
+   - [ ] 实现了所有需求
+   - [ ] 考虑了边缘情况
+   - [ ] 处理了错误情况
+
+2. **代码质量**:
+   - [ ] 遵循代码规范
+   - [ ] 没有冗余代码
+   - [ ] 命名清晰明确
+   - [ ] 注释必要的复杂逻辑
+
+3. **测试覆盖**:
+   - [ ] 编写了单元测试
+   - [ ] 测试覆盖主要功能
+   - [ ] 所有测试都通过
+
+4. **性能考量**:
+   - [ ] 优化了资源加载
+   - [ ] 避免不必要的重渲染
+   - [ ] 合理使用缓存
+
+5. **安全性**:
+   - [ ] 验证用户输入
+   - [ ] 避免敏感信息泄露
+   - [ ] 遵循安全最佳实践
+
+
+   ---
+
+
+   # AI助手移动端开发规范
+
+## 编码规范
+
+### 命名规范
+
+1. **文件命名**:
+   - 组件文件：使用PascalCase，如`MessageInput.vue`
+   - 工具文件：使用kebab-case，如`api-client.ts`
+   - 样式文件：使用kebab-case，如`variables.scss`
+
+2. **变量命名**:
+   - 使用有意义的、描述性的名称
+   - 布尔值变量以`is`、`has`、`can`等开头
+   - 常量使用全大写，下划线分隔，如`MAX_REQUEST_SIZE`
+   - 私有变量以下划线开头，如`_privateVar`
+
+3. **组件命名**:
+   - 使用多词组合，避免单词命名
+   - 遵循功能+类型的格式，如`UserProfile`、`MessageList`
+   - 基础组件使用`Base`前缀，如`BaseButton`、`BaseInput`
+
+### 代码格式
+
+1. **缩进**:
+   - 使用2个空格缩进
+   - 不使用Tab字符
+
+2. **最大行长**:
+   - 单行代码最多100个字符
+   - 超出长度时适当换行
+
+3. **空白**:
+   - 操作符两侧保留空格，如`a + b`
+   - 函数参数列表中逗号后保留空格，如`foo(a, b, c)`
+   - 代码块之间使用空行分隔
+
+### Vue组件规范
+
+1. **组件结构**:
+   ```vue
+   <template>
+     <!-- 模板 -->
+   </template>
+   
+   <script setup lang="ts">
+   // 导入
+   // Props
+   // Emits
+   // 状态
+   // 计算属性
+   // 方法
+   // 生命周期
+   </script>
+   
+   <style lang="scss" scoped>
+   /* 样式 */
+   </style>
+   ```
+
+2. **Props定义**:
+   - 使用类型推断定义Props
+   - 明确标注是否必需
+   - 提供合理的默认值
+   ```typescript
+   const props = withDefaults(defineProps<{
+     title: string;
+     showHeader?: boolean;
+     items?: Item[];
+   }>(), {
+     showHeader: true,
+     items: () => []
+   });
+   ```
+
+3. **事件命名**:
+   - 使用kebab-case命名事件
+   - 强制定义事件类型
+   ```typescript
+   const emit = defineEmits<{
+     (e: 'update:modelValue', value: string): void;
+     (e: 'form-submit', data: FormData): void;
+   }>();
+   ```
+
+### TypeScript使用规范
+
+1. **类型定义**:
+   - 使用接口定义数据结构，使用类型别名定义联合类型
+   - 接口名使用大写开头，如`User`、`MessagePayload`
+   - 尽量使用确切类型，减少`any`的使用
+
+2. **类型文件组织**:
+   - 共享类型定义放在`types/`目录下
+   - 模块特定类型放在相应模块目录
+   - 文件命名使用`.d.ts`或`.types.ts`后缀
+
+3. **类型导出**:
+   - 一个文件中导出多个类型
+   - 使用命名导出
+   ```typescript
+   // types/api.ts
+   export interface User {
+     id: string;
+     name: string;
+     avatar?: string;
+   }
+   
+   export interface Message {
+     id: string;
+     content: string;
+     sender: User;
+     timestamp: number;
+   }
+   ```
+
+### CSS命名规范
+
+1. **BEM命名法**:
+   - 块（Block）：独立实体，如`.btn`、`.card`
+   - 元素（Element）：块的组成部分，如`.card__title`
+   - 修饰符（Modifier）：块或元素的状态，如`.btn--primary`
+
+2. **变量命名**:
+   - 使用kebab-case，如`--primary-color`
+   - 按功能而非值命名，如`--spacing-sm`而非`--spacing-8px`
+
+3. **媒体查询规范**:
+   - 使用`em`单位定义断点
+   - 统一使用max-width或min-width，避免混用
+   - 将媒体查询放在相关规则附近
+
+## 目录结构规范
+
+```
+mobile/
+├── public/               # 静态资源
+│   ├── favicon.ico
+│   ├── robots.txt
+│   └── sw.js            # Service Worker
+├── src/
+│   ├── api/             # API请求层
+│   ├── assets/          # 资源文件
+│   │   ├── icons/
+│   │   └── images/
+│   ├── components/      # 组件
+│   │   ├── base/        # 基础组件
+│   │   ├── common/      # 通用组件
+│   │   └── features/    # 功能组件
+│   ├── composables/     # 组合式函数
+│   ├── constants/       # 常量定义
+│   ├── layouts/         # 布局组件
+│   ├── router/          # 路由配置
+│   ├── stores/          # 状态管理
+│   ├── styles/          # 全局样式
+│   │   ├── _variables.scss
+│   │   └── main.scss
+│   ├── types/           # 类型定义
+│   ├── utils/           # 工具函数
+│   │   ├── logger.ts
+│   │   └── monitor.ts
+│   ├── views/           # 页面组件
+│   ├── App.vue          # 根组件
+│   ├── main.ts          # 入口文件
+│   └── shims-vue.d.ts   # Vue类型声明
+├── tests/               # 测试文件
+├── vite.config.ts       # Vite配置
+└── tsconfig.json        # TypeScript配置
+```
+
+## 代码质量规范
+
+### 注释规范
+
+1. **代码注释**:
+   - 复杂逻辑需要添加注释
+   - 使用JSDoc格式注释函数
+   ```typescript
+   /**
+    * 格式化日期为指定格式
+    * @param date - 要格式化的日期
+    * @param format - 日期格式，默认为'YYYY-MM-DD HH:mm:ss'
+    * @returns 格式化后的日期字符串
+    */
+   function formatDate(date: Date, format = 'YYYY-MM-DD HH:mm:ss'): string {
+     // 实现...
+   }
+   ```
+
+2. **TODO注释**:
+   - 使用统一格式：`// TODO: 描述`
+   - 尽量附加处理时间或负责人
+
+3. **文件头注释**:
+   - 在重要文件添加文件说明
+   ```typescript
+   /**
+    * 网络监控工具
+    * 用于跟踪和分析网络请求性能
+    * 
+    * @author 开发团队
+    * @since 2023-01-01
+    */
+   ```
+
+### 测试规范
+
+1. **单元测试命名**:
+   - 测试文件使用`.spec.ts`或`.test.ts`后缀
+   - 测试用例描述清晰功能点和预期结果
+
+2. **测试分组**:
+   - 按功能或组件分组测试
+   - 使用`describe`嵌套表示层级关系
+   ```typescript
+   describe('MessageInput组件', () => {
+     describe('基础功能', () => {
+       it('应该渲染输入框', () => { /* ... */ });
+       it('应该接受用户输入', () => { /* ... */ });
+     });
+     
+     describe('提交功能', () => {
+       it('空内容不应触发提交', () => { /* ... */ });
+       it('点击发送按钮应触发submit事件', () => { /* ... */ });
+     });
+   });
+   ```
+
+3. **Mock使用规范**:
+   - 只mock外部依赖，不mock被测代码
+   - 使用统一的mock方式
+   - 测试结束后恢复mock
+
+### 日志规范
+
+1. **日志级别使用**:
+   - `debug`: 开发调试信息
+   - `info`: 一般操作信息
+   - `warn`: 潜在问题警告
+   - `error`: 错误信息
+
+2. **日志内容**:
+   - 包含必要上下文信息
+   - 提供明确错误描述
+   - 不记录敏感信息
+   ```typescript
+   // 好的做法
+   logger.error('用户登录失败', { 
+     userId: '123',
+     reason: 'credentials_invalid',
+     attempts: 3
+   });
+   
+   // 避免
+   logger.error('登录失败: 密码错误');
+   ```
+
+3. **异常处理**:
+   - 捕获并记录异常
+   - 提供用户友好的错误提示
+   - 不向用户暴露技术细节
+
+## 性能规范
+
+### 渲染性能
+
+1. **组件优化**:
+   - 使用`shallowRef`处理大型对象
+   - 合理使用`v-once`、`v-memo`
+   - 避免不必要的计算属性
+
+2. **列表渲染**:
+   - 大列表使用虚拟滚动
+   - 正确使用`key`属性
+   - 避免在`v-for`中使用复杂计算
+
+3. **条件渲染**:
+   - 使用`v-show`代替频繁切换的`v-if`
+   - 将大型条件块提取为组件
+
+### 网络性能
+
+1. **API请求优化**:
+   - 合并多个请求
+   - 实现请求缓存
+   - 避免重复请求相同数据
+
+2. **资源加载**:
+   - 按需加载组件和资源
+   - 图片使用合适尺寸和格式
+   - 实现资源预加载策略
+
+3. **缓存策略**:
+   - 静态资源使用长期缓存
+   - 动态内容使用合适的缓存策略
+   - 实现离线访问支持
+
+### 代码优化
+
+1. **代码分割**:
+   - 使用动态导入拆分代码
+   - 将第三方库单独打包
+   - 按路由拆分代码
+
+2. **打包优化**:
+   - 启用生产环境优化
+   - 移除未使用的代码
+   - 压缩资源文件
+
+## 安全规范
+
+### 数据安全
+
+1. **敏感数据处理**:
+   - 不在前端存储敏感信息
+   - 使用安全存储机制
+   - 传输过程加密
+
+2. **输入验证**:
+   - 前端实现基本输入验证
+   - 过滤和转义用户输入
+   - 防止XSS攻击
+
+3. **权限控制**:
+   - 实现基于角色的访问控制
+   - 敏感操作二次确认
+   - 前后端权限一致性验证
+
+### API安全
+
+1. **请求安全**:
+   - 使用HTTPS
+   - 实现请求签名
+   - 添加CSRF保护
+
+2. **认证管理**:
+   - 合理设置Token过期时间
+   - 实现安全的刷新机制
+   - 多设备登录冲突处理
+
+## 兼容性规范
+
+### 浏览器兼容性
+
+1. **目标浏览器**:
+   - Mobile Safari: 最新2个版本
+   - Chrome for Android: 最新2个版本
+   - Android WebView: Android 7.0+
+
+2. **特性检测**:
+   - 使用特性检测而非浏览器检测
+   - 提供功能降级方案
+   - 对关键API实现Polyfill
+
+### 设备兼容性
+
+1. **响应式设计**:
+   - 支持多种屏幕尺寸
+   - 实现弹性布局
+   - 使用相对单位
+
+2. **设备适配**:
+   - 适配不同像素密度
+   - 处理设备特定问题
+   - 考虑不同输入方式
+
+## 版本控制规范
+
+### Git使用规范
+
+1. **分支管理**:
+   - `main`: 主分支，最新稳定版本
+   - `develop`: 开发分支
+   - `feature/*`: 功能分支
+   - `fix/*`: 修复分支
+   - `release/*`: 发布分支
+
+2. **提交信息**:
+   ```
+   <类型>(<范围>): <描述>
+   
+   <详细说明>
+   
+   <关联问题>
+   ```
+   
+   类型包括：
+   - `feat`: 新功能
+   - `fix`: 修复Bug
+   - `docs`: 文档
+   - `style`: 样式
+   - `refactor`: 重构
+   - `perf`: 性能优化
+   - `test`: 测试
+   - `build`: 构建
+   - `ci`: CI/CD
+   - `chore`: 其他
+
+3. **代码评审**:
+   - 所有功能和修复通过Pull Request提交
+   - 至少一名团队成员评审通过
+   - 符合代码规范并通过自动化测试
+
+## 文档规范
+
+### 代码文档
+
+1. **内部文档**:
+   - 复杂组件提供使用示例
+   - 工具函数添加JSDoc注释
+   - API封装说明请求参数和响应结构
+
+2. **组件文档**:
+   - 说明Props和事件
+   - 提供使用示例
+   - 列出已知问题和限制
+
+### 项目文档
+
+1. **项目说明文档**:
+   - 项目介绍和目标
+   - 技术栈和架构
+   - 环境和依赖
+
+2. **开发文档**:
+   - 开发环境搭建
+   - 代码规范
+   - 测试指南
+
+3. **操作手册**:
+   - 构建和部署流程
+   - 常见问题解决
+   - 更新日志
+
+## 总结
+
+以上规范旨在提高团队协作效率、代码质量和应用性能。开发过程中应当：
+
+1. 优先遵循团队约定的规范
+2. 与现有代码风格保持一致
+3. 定期更新规范以适应项目发展
+
+在实践中可根据项目特性和团队情况进行合理调整。
+
+
+---
+
+
+# AI助手移动端产品手册
+
+## 产品概述
+
+AI助手移动端应用是一款基于PWA技术构建的人工智能助手应用，旨在为用户提供随时随地的智能问答和辅助服务。应用采用了现代Web技术栈，支持离线使用、本地安装和推送通知等原生应用功能，同时保持了Web应用的跨平台优势。
+
+### 核心价值
+
+- **即时智能服务**：随时随地获取AI助手支持
+- **离线可用**：在无网络环境下继续使用核心功能
+- **轻量安装**：无需应用商店，直接安装到设备
+- **全平台支持**：iOS、Android和桌面平台统一体验
+
+## 功能列表
+
+### 1. 智能对话
+
+| 功能 | 描述 | 技术实现 |
+|------|------|---------|
+| 文本对话 | 支持自然语言问答交互 | WebSocket实时通信 |
+| 语音输入 | 支持语音识别转文字 | Web Speech API |
+| 上下文记忆 | 保持对话连贯性 | 本地存储+API状态管理 |
+| 离线回答 | 基本问题离线回答 | IndexedDB缓存+本地模型 |
+
+### 2. 应用体验
+
+| 功能 | 描述 | 技术实现 |
+|------|------|---------|
+| 应用安装 | 支持添加到主屏幕 | Web App Manifest |
+| 离线使用 | 核心功能离线可用 | Service Worker |
+| 消息推送 | 接收重要通知 | Push API |
+| 自适应界面 | 适配不同设备尺寸 | 响应式设计 |
+| 深色模式 | 支持系统主题跟随 | CSS变量+媒体查询 |
+
+### 3. 性能与体验
+
+| 功能 | 描述 | 技术实现 |
+|------|------|---------|
+| 快速启动 | 应用启动时间<2秒 | 资源预缓存 |
+| 流畅交互 | 60fps动画和交互 | 虚拟列表+性能优化 |
+| 弱网适应 | 在弱网环境下可用 | 优先加载策略+降级处理 |
+| 离线提示 | 网络状态变化提示 | 网络监听API |
+
+## 用户场景
+
+### 场景一：日常问答
+
+**用户角色**：普通用户小张  
+**场景描述**：小张在通勤路上想查询一些信息，但地铁信号不稳定。  
+**使用流程**：
+1. 打开已安装到主屏幕的AI助手应用
+2. 在弱网环境下，应用仍能快速加载核心界面
+3. 输入问题或使用语音输入功能提问
+4. 即使信号断断续续，应用也能在恢复连接后继续对话
+5. 应用自动保存对话历史，方便后续查看
+
+### 场景二：专业辅助
+
+**用户角色**：设计师小李  
+**场景描述**：小李需要AI助手协助解决工作中遇到的专业问题  
+**使用流程**：
+1. 通过浏览器访问AI助手应用
+2. 收到安装提示，将应用添加到桌面
+3. 上传设计稿并提出专业问题
+4. 获取AI解答和建议
+5. 保存有价值的回答到收藏夹，离线也能查看
+
+### 场景三：学习辅导
+
+**用户角色**：学生小王  
+**场景描述**：小王在备考过程中需要解决学习难题  
+**使用流程**：
+1. 打开AI助手应用
+2. 选择"学习助手"模式
+3. 拍照上传试题或直接输入问题
+4. 获取详细解答和学习建议
+5. 在无网络环境下复习已缓存的知识点
+
+## 技术架构
+
+### 前端架构
+
+```
+前端应用
+├── 展示层
+│   ├── 页面组件
+│   ├── 通用组件
+│   └── 布局组件
+├── 业务逻辑层
+│   ├── 组合式函数
+│   ├── 状态管理
+│   └── 服务模块
+├── 数据访问层
+│   ├── API客户端
+│   ├── 缓存管理
+│   └── 本地存储
+└── 基础设施层
+    ├── PWA支持
+    ├── 监控系统
+    └── 工具函数
+```
+
+### 关键技术
+
+- **PWA技术栈**：Service Worker、Web App Manifest、Cache API
+- **前端框架**：Vue 3 + TypeScript
+- **构建工具**：Vite
+- **UI组件**：自定义组件库
+- **数据流**：Composition API + 响应式状态
+- **网络通信**：Fetch API、WebSocket
+- **本地存储**：IndexedDB、LocalStorage
+- **监控系统**：自定义日志和性能监控模块
+
+## 界面设计
+
+### 设计语言
+
+AI助手移动端采用现代简约设计风格，主要特点：
+
+- **简洁直观**：减少视觉噪音，突出核心内容
+- **渐进式动效**：提供流畅反馈，增强交互体验
+- **一致性**：统一的设计元素和交互模式
+- **可访问性**：支持屏幕阅读器和键盘导航
+
+### 配色方案
+
+| 颜色名称 | 色值 | 应用场景 |
+|---------|------|---------|
+| 主题色 | #4F46E5 | 主按钮、强调元素 |
+| 辅助色 | #10B981 | 成功状态、积极反馈 |
+| 警示色 | #F59E0B | 警告、提示信息 |
+| 错误色 | #EF4444 | 错误状态、危险操作 |
+| 中性色-暗 | #1F2937 | 主要文本 |
+| 中性色-中 | #6B7280 | 次要文本 |
+| 中性色-浅 | #F3F4F6 | 背景、分割线 |
+
+### 响应式断点
+
+| 断点名称 | 宽度范围 | 典型设备 |
+|---------|---------|---------|
+| xs | <576px | 手机竖屏 |
+| sm | 576px-767px | 手机横屏 |
+| md | 768px-991px | 平板竖屏 |
+| lg | 992px-1199px | 平板横屏/小型笔记本 |
+| xl | ≥1200px | 桌面显示器 |
+
+## 性能指标
+
+AI助手移动端应用致力于提供优秀的用户体验，设定以下性能目标：
+
+| 指标 | 目标值 | 测量方法 |
+|------|-------|---------|
+| 首次内容绘制(FCP) | <1.8秒 | Web Vitals |
+| 最大内容绘制(LCP) | <2.5秒 | Web Vitals |
+| 首次输入延迟(FID) | <100毫秒 | Web Vitals |
+| 累积布局偏移(CLS) | <0.1 | Web Vitals |
+| 离线加载时间 | <1秒 | 自定义测量 |
+| 应用体积 | <500KB (gzip) | 构建分析 |
+| 内存使用 | <100MB | Performance API |
+
+## 离线功能
+
+### 离线支持内容
+
+AI助手移动端应用在离线状态下支持以下功能：
+
+- **应用加载**：完整UI界面可离线访问
+- **历史对话**：查看历史对话记录
+- **基础回答**：简单问题的本地回答能力
+- **内容收藏**：访问已收藏的内容
+- **笔记功能**：创建和编辑本地笔记
+
+### 同步策略
+
+当网络恢复后，应用将执行以下同步操作：
+
+- **离线消息同步**：将离线发送的消息同步到服务器
+- **数据一致性检查**：确保本地数据与服务器一致
+- **配置更新**：更新应用配置和内容
+
+## 安全与隐私
+
+### 数据安全
+
+- **本地数据加密**：敏感数据使用加密存储
+- **传输加密**：全程HTTPS通信
+- **访问控制**：基于角色的权限管理
+- **安全存储**：敏感信息使用安全存储API
+
+### 隐私保护
+
+- **数据最小化**：只收集必要信息
+- **透明度**：明确的隐私政策和数据使用说明
+- **用户控制**：提供数据删除和导出选项
+- **本地处理**：优先在本地处理敏感信息
+
+## 兼容性支持
+
+### 浏览器支持
+
+| 浏览器 | 最低版本 | 备注 |
+|-------|--------|------|
+| Chrome | 87+ | 完全支持 |
+| Safari | 14.1+ | PWA功能部分限制 |
+| Firefox | 97+ | 完全支持 |
+| Edge | 88+ | 完全支持 |
+| Samsung Internet | 15+ | 完全支持 |
+
+### 操作系统支持
+
+| 操作系统 | 最低版本 | 备注 |
+|---------|--------|------|
+| iOS | 14.5+ | 安装体验有差异 |
+| Android | 7.0+ | 完全支持 |
+| Windows | 10+ | 完全支持 |
+| macOS | 11+ | 完全支持 |
+| Linux | 现代发行版 | 基于内核和浏览器版本 |
+
+## 项目路线图
+
+### 当前版本 (v1.0)
+
+- [x] PWA基础功能支持
+- [x] 移动端UI适配
+- [x] 基础对话功能
+- [x] 离线使用支持
+- [x] 性能监控系统
+
+### 下一版本计划 (v1.1)
+
+- [ ] 语音交互增强
+- [ ] 深色模式支持
+- [ ] 离线回答能力提升
+- [ ] 推送通知支持
+- [ ] 更多个性化选项
+
+### 未来规划
+
+- [ ] 本地小型模型集成
+- [ ] AR功能支持
+- [ ] 多设备同步
+- [ ] 高级离线功能
+- [ ] 第三方服务集成
+
+## 常见问题解答
+
+### 安装相关
+
+**问**: 如何将应用安装到我的设备上？  
+**答**: 在Chrome、Safari或Edge等现代浏览器中访问应用，如果您的设备支持PWA安装，将自动弹出安装提示。您也可以通过菜单中的"添加到主屏幕"选项手动安装。
+
+**问**: 安装后的应用占用多少存储空间？  
+**答**: 初始安装大约占用10MB左右的存储空间。随着使用，缓存的内容可能会增加，但应用会自动管理缓存大小。
+
+### 使用相关
+
+**问**: 应用可以在没有网络的情况下使用吗？  
+**答**: 是的，核心界面和基本功能在离线状态下可用。历史对话和已缓存的内容可以正常访问，但新问题可能需要网络连接才能获得完整回答。
+
+**问**: 如何清除应用的缓存数据？  
+**答**: 在应用的"设置"中，您可以找到"清除缓存"选项。您也可以通过浏览器的设置中清除网站数据。
+
+### 技术支持
+
+**问**: 应用出现问题该如何解决？  
+**答**: 首先尝试刷新应用或重新启动。如果问题持续，可以尝试在设置中的"重置应用"选项。对于持续的问题，请通过应用内的"反馈"功能联系我们。
+
+**问**: 更新应用的方式是什么？  
+**答**: 应用会在后台自动检查更新，并在下次启动时应用。您也可以在"关于"页面中手动检查更新。
+
+## 联系与支持
+
+- **技术支持**: support@ai-assistant.com
+- **官方网站**: https://ai-assistant.com
+- **开发文档**: https://docs.ai-assistant.com
+- **反馈渠道**: 应用内"设置-反馈"功能
+
+---
+
+*本文档最后更新于: 2023年12月15日*
+
+
+---
+
+
+
+
 您说得对。服务器部署和系统联调确实应该放在更高层级的 overview 中规划，因为这涉及到整个系统的架构和多个模块之间的协作。让我重新组织一下：
 
 ### mobile 模块第二阶段任务：PWA应用打包与优化（1-2周）

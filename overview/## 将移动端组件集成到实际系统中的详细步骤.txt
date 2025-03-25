@@ -1,0 +1,301 @@
+## 将移动端组件集成到实际系统中的详细步骤
+
+### 1. 建立与Overview模块的连接
+
+需要修改 `feature-service.ts` 文件，将模拟代码替换为实际的Overview API调用：
+
+```typescript
+// 从Overview模块导入API
+import { 
+  featuresApi, 
+  FeatureType, 
+  type Feature as OverviewFeature,
+  FeatureEvents, 
+  eventBus 
+} from '../../overview/src';
+
+// 转换Overview功能到移动端功能
+private mapOverviewFeature(feature: OverviewFeature): Feature {
+  return {
+    id: feature.id,
+    name: feature.name,
+    type: feature.type,
+    icon: feature.icon,
+    description: feature.description,
+    order: feature.order,
+    disabled: feature.disabled
+  };
+}
+
+// 初始化方法修改
+async initialize(): Promise<void> {
+  if (this.isInitialized) return;
+  
+  try {
+    // 从Overview模块获取功能
+    const overviewFeatures = featuresApi.getVisibleFeatures();
+    this.features = overviewFeatures.map(f => this.mapOverviewFeature(f));
+    
+    // 监听功能变化
+    featuresApi.onFeaturesChanged(features => {
+      this.features = features.map(f => this.mapOverviewFeature(f));
+      this.notifyListeners();
+    });
+    
+    this.isInitialized = true;
+    this.notifyListeners();
+    console.info('功能服务初始化完成');
+  } catch (error) {
+    console.error('功能服务初始化失败:', error);
+    throw error;
+  }
+}
+```
+
+### 2. 实现消息传递机制
+
+在 `feature-service.ts` 中添加事件处理和消息发送功能：
+
+```typescript
+// 发送功能消息
+async sendFeatureMessage(featureId: string, message: string): Promise<any> {
+  const feature = this.getFeatureById(featureId);
+  if (!feature) {
+    throw new Error(`功能[${featureId}]不存在`);
+  }
+  
+  // 通过Overview的事件总线发送消息
+  eventBus.publish(`feature:${featureId}:message`, {
+    id: Date.now().toString(),
+    featureId,
+    content: message,
+    timestamp: new Date().toISOString(),
+    source: 'mobile'
+  });
+  
+  // 返回Promise以支持异步响应
+  return new Promise((resolve) => {
+    // 一次性监听该功能的响应
+    const unsubscribe = eventBus.subscribe(`feature:${featureId}:response`, (response) => {
+      unsubscribe();
+      resolve(response);
+    });
+    
+    // 设置超时处理
+    setTimeout(() => {
+      unsubscribe();
+      resolve({ error: '请求超时' });
+    }, 30000);
+  });
+}
+```
+
+### 3. 注册移动端模块到Overview
+
+在 `App.vue` 的初始化逻辑中添加：
+
+```typescript
+import { 
+  systemApi, 
+  FeatureType
+} from '../../overview/src';
+
+onMounted(async () => {
+  try {
+    // 初始化功能服务
+    await featureService.initialize();
+    
+    // 向Overview注册移动端模块
+    systemApi.registerModule('mobile', [
+      {
+        id: 'mobile-interface',
+        name: '移动端界面',
+        type: FeatureType.SETTINGS,
+        description: '移动端特有界面设置',
+        icon: '/icons/mobile-icon.svg'
+      }
+    ]);
+    
+    console.info('移动端应用初始化完成');
+  } catch (error) {
+    console.error('应用初始化失败:', error);
+  }
+});
+```
+
+### 4. 处理界面状态同步
+
+在 `ChatView.vue` 中添加事件监听：
+
+```typescript
+import { eventBus, FeatureEvents } from '../../overview/src';
+
+// 生命周期钩子
+onMounted(() => {
+  // 监听功能选择事件
+  const unsubscribeFeatureSelected = eventBus.subscribe(
+    FeatureEvents.FEATURE_SELECTED, 
+    (feature) => {
+      // 找到对应的本地功能
+      const localFeature = availableFeatures.value.find(f => f.id === feature.id);
+      if (localFeature) {
+        handleFeatureSelect(localFeature);
+      }
+    }
+  );
+  
+  // 监听消息响应
+  const unsubscribeMessageResponse = eventBus.subscribe(
+    'messages:received',
+    (message) => {
+      // 处理收到的消息
+      console.log('收到消息:', message);
+      // 这里添加消息显示逻辑
+    }
+  );
+  
+  // 组件卸载时取消订阅
+  onUnmounted(() => {
+    unsubscribeFeatureSelected();
+    unsubscribeMessageResponse();
+  });
+});
+```
+
+### 5. 错误处理与重试机制
+
+在 `feature-service.ts` 中添加错误处理：
+
+```typescript
+// 错误处理与重试
+private async withRetry<T>(
+  operation: () => Promise<T>, 
+  retries = 3, 
+  delay = 1000
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (retries <= 0) throw error;
+    
+    console.warn(`操作失败，将在${delay}ms后重试，剩余重试次数: ${retries}`);
+    await new Promise(resolve => setTimeout(resolve, delay));
+    
+    return this.withRetry(operation, retries - 1, delay * 1.5);
+  }
+}
+
+// 应用到初始化方法
+async initialize(): Promise<void> {
+  if (this.isInitialized) return;
+  
+  try {
+    await this.withRetry(async () => {
+      // 初始化代码...
+    });
+  } catch (error) {
+    console.error('功能服务初始化失败:', error);
+    throw error;
+  }
+}
+```
+
+### 6. 加载状态处理
+
+在 `ChatView.vue` 中添加加载状态：
+
+```typescript
+// 状态
+const loading = ref(false);
+const error = ref<string | null>(null);
+
+// 加载功能
+async function loadFeatures() {
+  loading.value = true;
+  error.value = null;
+  
+  try {
+    // 加载功能
+    await featureService.initialize();
+    availableFeatures.value = featureService.getVisibleFeatures();
+    
+    // 默认选择第一个功能
+    if (availableFeatures.value.length > 0 && !selectedFeature.value) {
+      handleFeatureSelect(availableFeatures.value[0]);
+    }
+  } catch (e) {
+    error.value = '加载功能失败，请重试';
+    console.error(e);
+  } finally {
+    loading.value = false;
+  }
+}
+```
+
+## 当前进度表
+
+### 已完成任务
+
+| 模块 | 任务 | 状态 |
+|------|------|------|
+| **Overview** | 核心API设计 | ✅ 完成 |
+| **Overview** | 事件总线 | ✅ 完成 |
+| **Overview** | 功能注册表 | ✅ 完成 |
+| **Overview** | 默认功能定义 | ✅ 完成 |
+| **Overview** | 系统初始化 | ✅ 完成 |
+| **Overview** | 模块集成接口 | ✅ 完成 |
+| **Mobile** | PWA基础配置 | ✅ 完成 |
+| **Mobile** | 移动端适配 | ✅ 完成 |
+| **Mobile** | 调试工具 | ✅ 完成 |
+| **Mobile** | 功能选择器 | ✅ 完成 |
+| **Mobile** | 可折叠输入框 | ✅ 完成 |
+| **Mobile** | 聊天视图 | ✅ 完成 |
+| **Mobile** | 功能服务 | ✅ 完成 |
+
+### 进行中任务
+
+| 模块 | 任务 | 状态 |
+|------|------|------|
+| **Mobile** | 与Overview集成 | 🔄 进行中 |
+| **Overview** | 实际消息处理 | 🔄 进行中 |
+
+### 待完成任务
+
+| 模块 | 任务 | 预计时间 |
+|------|------|---------|
+| **Mobile** | 消息历史组件 | 2天 |
+| **Mobile** | 消息展示组件 | 3天 |
+| **Mobile** | 离线功能支持 | 3天 |
+| **Mobile** | 单元测试 | 2天 |
+| **PC** | 基础架构设计 | 4天 |
+| **PC** | 桌面UI组件 | 7天 |
+| **PC** | 高级编辑功能 | 5天 |
+| **LLM** | 模型接口封装 | 4天 |
+| **LLM** | 提示词工程 | 5天 |
+| **LLM** | 上下文管理 | 3天 |
+| **数据** | 存储接口设计 | 3天 |
+| **数据** | 数据同步机制 | 4天 |
+| **系统** | 部署配置 | 3天 |
+| **系统** | 集成测试 | 5天 |
+
+### 后续计划
+
+1. **第一阶段**：完成移动端与Overview的完整集成
+   - 实现消息历史和展示
+   - 完成离线功能
+   - 单元测试覆盖
+
+2. **第二阶段**：PC模块开发
+   - 实现桌面端特有UI
+   - 高级编辑功能开发
+   - 与Overview集成
+
+3. **第三阶段**：LLM和数据模块开发
+   - 实现模型调用接口
+   - 设计数据存储和同步机制
+   - 集成到现有系统
+
+4. **最终阶段**：系统部署与测试
+   - 完整系统测试
+   - 部署配置
+   - 性能优化

@@ -1,6 +1,6 @@
    {
      "folders": [
-       { "name": "📁 总览 (Overview)", "path": "./" },
+       { "name": "📁 总览 (Overview)", "path": "./overview" },
        { "name": "🏢 大模型 (LLM-meta)", "path": "./llm-meta" },
        { "name": "📝 笔记系统 (Notes)", "path": "./notes" },
        { "name": "🔍 手机入口 (mobile)", "path": "./mobile" },
