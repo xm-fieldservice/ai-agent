@@ -17,6 +17,7 @@ import { initMobileAdapter, updateLayout } from './utils/mobileAdapter'
 import InstallPrompt from './components/InstallPrompt.vue'
 import NetworkStatus from './components/NetworkStatus.vue'
 import GestureFeedback from './components/GestureFeedback.vue'
+import { featureService } from './services/feature-service'
 
 const isKeyboardOpen = ref(false)
 
@@ -31,16 +32,24 @@ const handleResize = () => {
   updateLayout()
 }
 
-onMounted(() => {
-  // 初始化移动端适配
-  initMobileAdapter()
-  
-  // 添加事件监听
-  document.body.addEventListener('classChange', handleKeyboardState)
-  window.addEventListener('resize', handleResize)
-  
-  // 初始布局
-  updateLayout()
+onMounted(async () => {
+  try {
+    // 初始化移动端适配
+    initMobileAdapter()
+    
+    // 初始化功能服务
+    await featureService.initialize()
+    console.info('移动端应用初始化完成')
+    
+    // 添加事件监听
+    document.body.addEventListener('classChange', handleKeyboardState)
+    window.addEventListener('resize', handleResize)
+    
+    // 初始布局
+    updateLayout()
+  } catch (error) {
+    console.error('应用初始化失败:', error)
+  }
 })
 
 onBeforeUnmount(() => {
