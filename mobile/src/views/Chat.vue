@@ -7,10 +7,12 @@
     
     <div class="chat-container">
       <div class="message-container" ref="messageContainer">
-        <MessageList 
-          :messages="messages" 
-          :loading="loading" 
-          @scroll="handleScroll"
+        <MessageList
+          :messages="messages"
+          :loading="loading"
+          :loadingMore="loadingMore"
+          :hasMore="hasMoreMessages"
+          @loadMore="loadHistory"
         />
       </div>
     </div>
@@ -37,8 +39,12 @@ const md = new MarkdownIt()
 const messageList = ref(null)
 const inputText = ref('')
 const loading = ref(false)
+const loadingMore = ref(false)
+const hasMoreMessages = ref(true)
 const error = ref(null)
 const messageContainer = ref(null)
+const currentPage = ref(1)
+const pageSize = ref(20)
 
 const modelStore = useModelStore()
 const chatStore = useChatStore()
@@ -98,26 +104,30 @@ const togglePhone = () => {
   // TODO: 实现语音功能
 }
 
-// 监听滚动事件
-const handleScroll = (event) => {
-  // 这里可以添加下拉加载历史消息的逻辑
-  const { scrollTop } = event.target
-  if (scrollTop === 0 && !loading.value) {
-    loadHistory()
-  }
-}
-
 // 加载历史消息
 const loadHistory = async () => {
   try {
-    loading.value = true
-    const history = await chat.getHistory()
-    messages.value = history
-    await scrollToBottom()
+    if (loadingMore.value) return
+    
+    loadingMore.value = true
+    // 分页加载历史消息
+    const history = await chat.getHistory({
+      page: currentPage.value,
+      pageSize: pageSize.value
+    })
+    
+    if (history && history.length > 0) {
+      // 将历史消息添加到消息列表顶部
+      messages.value = [...history, ...messages.value]
+      currentPage.value++
+    } else {
+      // 没有更多历史消息
+      hasMoreMessages.value = false
+    }
   } catch (error) {
     Toast.fail('加载历史消息失败')
   } finally {
-    loading.value = false
+    loadingMore.value = false
   }
 }
 
@@ -130,6 +140,7 @@ watch(error, (newError) => {
 })
 
 onMounted(() => {
+  // 初始加载历史消息
   loadHistory()
 })
 </script>
@@ -143,13 +154,13 @@ onMounted(() => {
 
 .chat-container {
   flex: 1;
-  overflow-y: auto;
-  padding: 60px 16px 60px;
+  position: relative;
+  padding: 60px 0 60px;
 }
 
 .message-container {
-  flex: 1;
-  overflow-y: auto;
+  height: 100%;
+  overflow: hidden;
   -webkit-overflow-scrolling: touch; // 优化iOS滚动
   padding-bottom: env(safe-area-inset-bottom); // 适配安全区域
 }

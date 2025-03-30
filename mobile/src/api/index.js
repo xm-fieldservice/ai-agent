@@ -59,9 +59,14 @@ export const chat = {
   },
 
   // 获取历史消息
-  getHistory: async () => {
+  getHistory: async ({ page = 1, pageSize = 20 } = {}) => {
     try {
-      const response = await api.get('/chat/history')
+      const response = await api.get('/chat/history', {
+        params: {
+          page,
+          pageSize
+        }
+      })
       return response.data
     } catch (error) {
       console.error('获取历史消息失败:', error)
