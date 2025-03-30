@@ -1,0 +1,263 @@
+好的，我重新设计一个统一详细程度的技术方案：
+
+### 一、服务器技术栈
+
+#### 1. 核心框架
+- **Node.js + Express**
+  - 已安装 Node.js v18.20.7
+  - 适合与现有 Mobile 和 LLM 模块集成
+  - 可以快速构建 RESTful API
+
+#### 2. 数据存储
+- **MySQL**
+  - 用于存储结构化数据（用户、笔记、标签等）
+  - 支持事务和关系管理
+  - 便于数据备份和恢复
+
+- **Redis**
+  - 用于缓存和会话管理
+  - 实时通知队列
+  - 临时数据存储
+
+#### 3. 消息系统
+- **Mattermost**
+  - 作为聊天功能的核心
+  - 提供 API 集成能力
+  - 支持团队协作
+
+#### 4. 文档处理
+- **Markdown 处理**
+  - `marked` 用于 Markdown 解析
+  - `markdown-it` 用于高级渲染
+  - 支持自定义扩展
+
+#### 5. 容器化
+- **Docker**（已安装 v28.0.2）
+  - 服务编排和部署
+  - 模块隔离
+  - 环境一致性
+
+### 二、系统架构
+
+#### 1. API 网关（Overview 模块）
+```typescript
+// 网关结构
+src/
+  ├── gateway/
+  │   ├── routes/
+  │   │   ├── mobile.ts    // 移动端 API
+  │   │   ├── llm.ts       // LLM 服务
+  │   │   ├── notes.ts     // 笔记服务
+  │   │   └── chat.ts      // Mattermost 集成
+  │   └── middleware/
+  │       ├── auth.ts      // 认证
+  │       └── logger.ts    // 日志
+```
+
+#### 2. 数据模型
+```typescript
+// 核心数据模型
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+interface Note {
+  id: string;
+  user_id: string;
+  title: string;
+  content: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+interface Tag {
+  id: string;
+  name: string;
+  user_id: string;
+  created_at: Date;
+}
+
+interface NoteTag {
+  note_id: string;
+  tag_id: string;
+}
+```
+
+#### 3. 数据库表结构
+```sql
+-- 用户表
+CREATE TABLE users (
+  id VARCHAR(36) PRIMARY KEY,
+  username VARCHAR(50) UNIQUE,
+  email VARCHAR(100),
+  password_hash VARCHAR(255),
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+-- 笔记表
+CREATE TABLE notes (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36),
+  title VARCHAR(255),
+  content TEXT,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 标签表
+CREATE TABLE tags (
+  id VARCHAR(36) PRIMARY KEY,
+  name VARCHAR(50),
+  user_id VARCHAR(36),
+  created_at TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- 笔记-标签关联表
+CREATE TABLE note_tags (
+  note_id VARCHAR(36),
+  tag_id VARCHAR(36),
+  PRIMARY KEY (note_id, tag_id),
+  FOREIGN KEY (note_id) REFERENCES notes(id),
+  FOREIGN KEY (tag_id) REFERENCES tags(id)
+);
+```
+
+#### 4. 事件总线
+```typescript
+// 事件总线接口
+interface EventBus {
+  publish(topic: string, data: any): void;
+  subscribe(topic: string, handler: (data: any) => void): void;
+  unsubscribe(topic: string, handler: (data: any) => void): void;
+}
+
+// 事件类型定义
+enum EventType {
+  NOTE_CREATED = 'note:created',
+  NOTE_UPDATED = 'note:updated',
+  NOTE_DELETED = 'note:deleted',
+  TAG_CREATED = 'tag:created',
+  TAG_UPDATED = 'tag:updated',
+  USER_LOGIN = 'user:login',
+  USER_LOGOUT = 'user:logout'
+}
+```
+
+### 三、模块集成方案
+
+#### 1. Mobile 模块集成
+- RESTful API 通信
+- WebSocket 实时通知
+- 离线数据同步
+
+#### 2. LLM 模块集成
+- API 网关路由
+- 上下文管理
+- 结果缓存
+
+#### 3. 笔记系统集成
+- Markdown 文档 CRUD
+- 标签系统
+- 全文搜索
+
+#### 4. Mattermost 集成
+- API 认证
+- 消息同步
+- 团队管理
+
+### 四、部署架构
+
+#### 1. 容器编排
+```yaml
+# docker-compose.yml
+version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+      - redis
+      - mattermost
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:6.0
+    volumes:
+      - redis_data:/data
+
+  mattermost:
+    image: mattermost/mattermost-preview:latest
+    ports:
+      - "8065:8065"
+    environment:
+      MM_SQLSETTINGS_DRIVERNAME: mysql
+      MM_SQLSETTINGS_DATASOURCE: ${MATTERMOST_DB_URL}
+```
+
+#### 2. 环境配置
+```typescript
+// 环境配置
+interface Config {
+  port: number;
+  database: {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+  };
+  redis: {
+    host: string;
+    port: number;
+    password?: string;
+  };
+  mattermost: {
+    url: string;
+    token: string;
+  };
+  jwt: {
+    secret: string;
+    expiresIn: string;
+  };
+}
+```
+
+### 五、下一步行动
+
+1. **环境准备**
+```bash
+# 安装依赖
+npm install express mysql2 redis @types/express marked mattermost-client
+
+# 启动服务
+docker-compose up -d
+```
+
+2. **基础架构实现**
+- 创建数据库表
+- 实现 API 网关
+- 配置事件总线
+
+3. **模块集成**
+- Mobile 模块集成
+- LLM 模块集成
+- 笔记系统实现
+- Mattermost 集成
+
+这个方案现在各个部分的详细程度更加统一，您觉得如何？我们可以开始实施第一步的环境准备工作。

@@ -1,0 +1,8 @@
+{
+  "file": "tests\\cases\\integration\\api-integration.test.ts",
+  "success": true,
+  "duration": 1699,
+  "output": "\n\u001b[7m\u001b[1m\u001b[36m RUN \u001b[39m\u001b[22m\u001b[27m \u001b[36mv1.6.1\u001b[39m \u001b[90mD:/AI/ai-agent/overview\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/cases/integration/api-integration.test.ts \u001b[2m (\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[90m 8\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m3 passed\u001b[39m\u001b[22m\u001b[90m (3)\u001b[39m\n\u001b[2m   Start at \u001b[22m 04:25:22\n\u001b[2m   Duration \u001b[22m 571ms\u001b[2m (transform 79ms, setup 0ms, collect 70ms, tests 8ms, environment 0ms, prepare 217ms)\u001b[22m\n\n",
+  "error": "",
+  "timestamp": "2025-03-28T20:25:22.734Z"
+}

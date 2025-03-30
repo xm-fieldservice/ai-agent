@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+按照下面的步骤修改代码，遇到问题后：
+1. 描述问题：
+2. 分析代码，确定问题
+3. 确定不了问题的时候，增加调试信息。在没有最终确定问题的时候，不得修改代码
+
+- You can @ files here
+- You can use markdown but dont have to

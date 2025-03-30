@@ -1,0 +1,42 @@
+{
+  "projects": {
+    "default": {
+      "name": "默认项目",
+      "testDirectory": "src/tests",
+      "testPattern": "*.test.ts",
+      "stages": {
+        "code": {
+          "pattern": "src/**/*.integration.test.ts",
+          "priority": "高",
+          "enabled": true
+        },
+        "database": {
+          "pattern": "src/**/db.*.test.ts",
+          "priority": "高",
+          "enabled": true
+        },
+        "storage": {
+          "pattern": "src/**/storage.*.test.ts",
+          "priority": "中",
+          "enabled": true
+        },
+        "llm": {
+          "pattern": "src/**/llm.*.test.ts",
+          "priority": "中",
+          "enabled": true
+        },
+        "cache": {
+          "pattern": "src/**/cache.*.test.ts",
+          "priority": "低",
+          "enabled": true
+        },
+        "system": {
+          "pattern": "src/**/system.*.test.ts",
+          "priority": "低",
+          "enabled": true
+        }
+      }
+    }
+  },
+  "currentProject": "default"
+}

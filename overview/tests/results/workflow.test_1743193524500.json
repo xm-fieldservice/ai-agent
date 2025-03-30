@@ -1,0 +1,8 @@
+{
+  "file": "tests\\cases\\e2e\\workflow.test.ts",
+  "success": true,
+  "duration": 1765,
+  "output": "\n\u001b[7m\u001b[1m\u001b[36m RUN \u001b[39m\u001b[22m\u001b[27m \u001b[36mv1.6.1\u001b[39m \u001b[90mD:/AI/ai-agent/overview\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/cases/e2e/workflow.test.ts \u001b[2m (\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[90m 5\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m2 passed\u001b[39m\u001b[22m\u001b[90m (2)\u001b[39m\n\u001b[2m   Start at \u001b[22m 04:25:23\n\u001b[2m   Duration \u001b[22m 560ms\u001b[2m (transform 82ms, setup 0ms, collect 67ms, tests 5ms, environment 0ms, prepare 206ms)\u001b[22m\n\n",
+  "error": "",
+  "timestamp": "2025-03-28T20:25:24.500Z"
+}
