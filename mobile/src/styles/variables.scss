@@ -1,52 +1,50 @@
-// 颜色变量
-$primary-color: #007AFF;
-$success-color: #34C759;
-$warning-color: #FF9500;
-$error-color: #FF3B30;
-$text-color: #333333;
-$text-color-secondary: #666666;
-$text-color-light: #999999;
-$border-color: #E5E5E5;
-$background-color: #F5F5F5;
+// Colors
+$primary-color: #1989fa;
+$success-color: #07c160;
+$error-color: #ee0a24;
+$warning-color: #ff976a;
+$text-color: #323233;
+$text-color-secondary: #969799;
+$background-color: #f7f8fa;
+$card-background: #FFFFFF;
+$border-color: #ebedf0;
 
-// 字体大小
+// Typography
 $font-size-xs: 0.75rem;  // 12px
 $font-size-sm: 0.875rem; // 14px
-$font-size-base: 1rem;   // 16px
+$font-size-md: 1rem;     // 16px
 $font-size-lg: 1.125rem; // 18px
 $font-size-xl: 1.25rem;  // 20px
 
-// 间距
+// Spacing
 $spacing-xs: 0.25rem;   // 4px
 $spacing-sm: 0.5rem;    // 8px
 $spacing-base: 1rem;    // 16px
 $spacing-lg: 1.5rem;    // 24px
 $spacing-xl: 2rem;      // 32px
 
-// 圆角
-$border-radius-sm: 4px;
-$border-radius-base: 8px;
-$border-radius-lg: 12px;
+// Border Radius
+$border-radius-sm: 2px;
+$border-radius-md: 4px;
+$border-radius-lg: 8px;
+$border-radius-max: 999px;
 $border-radius-circle: 50%;
 
-// 阴影
-$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-$shadow-base: 0 4px 8px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+// Shadows
+$shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-2: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-3: 0 4px 8px rgba(0, 0, 0, 0.1);
 
-// 动画
+// Z-index
+$z-index-navbar: 100;
+$z-index-popup: 1000;
+$z-index-modal: 1100;
+$z-index-toast: 1200;
+
+// Transitions
 $transition-base: all 0.3s ease;
 $transition-fast: all 0.2s ease;
 $transition-slow: all 0.4s ease;
-
-// z-index层级
-$z-index-dropdown: 1000;
-$z-index-sticky: 1020;
-$z-index-fixed: 1030;
-$z-index-modal-backdrop: 1040;
-$z-index-modal: 1050;
-$z-index-popover: 1060;
-$z-index-tooltip: 1070;
 
 // 断点
 $breakpoint-xs: 320px;
@@ -59,4 +57,105 @@ $breakpoint-xl: 1024px;
 $safe-area-inset-top: env(safe-area-inset-top);
 $safe-area-inset-right: env(safe-area-inset-right);
 $safe-area-inset-bottom: env(safe-area-inset-bottom);
-$safe-area-inset-left: env(safe-area-inset-left); 
+$safe-area-inset-left: env(safe-area-inset-left);
+
+:export {
+  primaryColor: $primary-color;
+  successColor: $success-color;
+  errorColor: $error-color;
+  warningColor: $warning-color;
+  textColor: $text-color;
+  textColorSecondary: $text-color-secondary;
+  backgroundColor: $background-color;
+  cardBackground: $card-background;
+  borderColor: $border-color;
+}
+
+// 字体大小
+$font-size-xs: 0.75rem;  // 12px
+$font-size-sm: 0.875rem; // 14px
+$font-size-lg: 1.125rem; // 18px
+$font-size-xl: 1.25rem;  // 20px
+
+// 间距
+$spacing-xs: 0.25rem;   // 4px
+$spacing-sm: 0.5rem;    // 8px
+$spacing-base: 1rem;    // 16px
+$spacing-lg: 1.5rem;    // 24px
+$spacing-xl: 2rem;      // 32px
+
+// 圆角
+$border-radius-circle: 50%;
+
+// 动画
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.2s ease;
+$transition-slow: all 0.4s ease;
+
+// z-index层级
+$z-index-modal-backdrop: 1040;
+
+// 断点
+$breakpoint-xs: 320px;
+$breakpoint-sm: 375px;
+$breakpoint-md: 414px;
+$breakpoint-lg: 768px;
+$breakpoint-xl: 1024px;
+
+// 安全区域
+$safe-area-inset-top: env(safe-area-inset-top);
+$safe-area-inset-right: env(safe-area-inset-right);
+$safe-area-inset-bottom: env(safe-area-inset-bottom);
+$safe-area-inset-left: env(safe-area-inset-left);
+
+:root {
+  // Colors
+  --primary-color: #007AFF;
+  --success-color: #34C759;
+  --error-color: #FF3B30;
+  --warning-color: #FF9500;
+  
+  --text-color: #000000;
+  --text-color-secondary: #8E8E93;
+  
+  --background-color: #FFFFFF;
+  --card-background: #FFFFFF;
+  --border-color: #C7C7CC;
+  
+  // Typography
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  
+  // Spacing
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-base: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  // Border Radius
+  --border-radius-sm: 4px;
+  --border-radius-base: 8px;
+  --border-radius-lg: 12px;
+  
+  // Shadows
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-base: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  // Z-index
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal: 1040;
+  --z-index-popover: 1050;
+  --z-index-tooltip: 1060;
+  
+  // Transitions
+  --transition-base: all 0.3s ease;
+  --transition-fast: all 0.15s ease;
+  --transition-slow: all 0.45s ease;
+} 

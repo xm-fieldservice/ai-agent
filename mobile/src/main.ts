@@ -8,6 +8,9 @@ import { registerServiceWorker } from './pwa/register-service-worker'
 import Vant from 'vant'
 import 'vant/lib/index.css'
 
+// 引入全局样式
+import '@/styles/index.scss'
+
 // 创建应用实例
 const app = createApp(App)
 

@@ -71,14 +71,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        swDest: 'dist/sw.js',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         globIgnores: ['**/node_modules/**/*'],
-        precacheAndRoute: [
-          { url: '/', revision: null },
-          { url: '/index.html', revision: null },
-          { url: '/manifest.json', revision: null }
-        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\./i,

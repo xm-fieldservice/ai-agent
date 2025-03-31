@@ -1,21 +1,18 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import PWATest from '../pages/PWATest.vue'
-
+import { createRouter, createWebHistory } from 'vue-router';
 const routes = [
-  {
-    path: '/',
-    redirect: '/pwa-test'
-  },
-  {
-    path: '/pwa-test',
-    name: 'PWATest',
-    component: PWATest
-  }
-]
-
+    {
+        path: '/',
+        name: 'home',
+        component: () => import('@/views/HomeView.vue')
+    },
+    {
+        path: '/test',
+        name: 'test',
+        component: () => import('@/views/TestView.vue')
+    }
+];
 const router = createRouter({
-  history: createWebHistory(),
-  routes
-})
-
-export default router 
+    history: createWebHistory(),
+    routes
+});
+export default router;

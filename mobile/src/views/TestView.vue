@@ -59,14 +59,14 @@
       <van-cell-group inset>
         <van-cell title="设备类型" :value="deviceType" />
         <van-cell title="窗口高度" :value="`${windowHeight}px`" />
-        <van-cell title="视口宽度" :value="`${window.innerWidth}px`" />
+        <van-cell title="视口宽度" :value="`${viewportWidth}px`" />
       </van-cell-group>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   isIOS,
@@ -83,6 +83,14 @@ import {
 const router = useRouter()
 const inputText = ref('')
 const isScrollDisabled = ref(false)
+const viewportWidth = ref(0)
+
+onMounted(() => {
+  viewportWidth.value = window.innerWidth
+  window.addEventListener('resize', () => {
+    viewportWidth.value = window.innerWidth
+  })
+})
 
 const deviceType = computed(() => {
   if (isIOS) return 'iOS设备'
@@ -102,83 +110,6 @@ const toggleScroll = () => {
 
 <style lang="scss" scoped>
 .test-view {
-  min-height: 100vh;
-  padding: 16px;
-  padding-top: calc(46px + var(--safe-area-top));
-  padding-bottom: var(--safe-area-bottom);
-  background: #f7f8fa;
-
-  .test-section {
-    margin-bottom: 24px;
-    background: #fff;
-    border-radius: 8px;
-    padding: 16px;
-
-    h3 {
-      margin: 0 0 16px;
-      font-size: 16px;
-      color: #323233;
-    }
-
-    .status {
-      margin-top: 8px;
-      font-size: 14px;
-      color: #969799;
-    }
-
-    .safe-area-demo {
-      position: relative;
-      height: 100px;
-      background: #f2f3f5;
-      border-radius: 4px;
-      overflow: hidden;
-
-      .top-area,
-      .bottom-area {
-        position: absolute;
-        left: 0;
-        right: 0;
-        height: 24px;
-        line-height: 24px;
-        text-align: center;
-        font-size: 12px;
-        color: #fff;
-      }
-
-      .top-area {
-        top: 0;
-        background: rgba(76, 175, 80, 0.5);
-      }
-
-      .bottom-area {
-        bottom: 0;
-        background: rgba(33, 150, 243, 0.5);
-      }
-    }
-
-    .scroll-area {
-      margin-top: 16px;
-      height: 200px;
-      overflow-y: auto;
-      background: #f2f3f5;
-      border-radius: 4px;
-      padding: 8px;
-
-      p {
-        margin: 8px 0;
-        padding: 8px;
-        background: #fff;
-        border-radius: 4px;
-      }
-    }
-  }
-}
-
-.van-nav-bar {
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
+  // 样式已移至 components.scss
 }
 </style> 

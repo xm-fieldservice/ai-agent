@@ -1,0 +1,52 @@
+@use 'variables' as *;
+
+// HomeView 组件样式
+.home-view {
+  padding: $spacing-base;
+  padding-top: calc($spacing-base + var(--safe-area-top));
+  padding-bottom: calc($spacing-base + var(--safe-area-bottom));
+
+  h1 {
+    margin: 0 0 $spacing-lg;
+    font-size: $font-size-xl;
+    font-weight: bold;
+    color: $text-color;
+    text-align: center;
+  }
+}
+
+// TestView 组件样式
+.test-view {
+  min-height: 100vh;
+  padding: $spacing-base;
+  padding-top: calc(46px + var(--safe-area-top));
+  padding-bottom: var(--safe-area-bottom);
+  background: $background-color;
+
+  .test-section {
+    margin-bottom: $spacing-lg;
+    background: $card-background;
+    border-radius: $border-radius-lg;
+    padding: $spacing-base;
+
+    h3 {
+      margin: 0 0 $spacing-base;
+      font-size: $font-size-lg;
+      color: $text-color;
+    }
+  }
+}
+
+// App 组件样式
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color);
+  
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-base);
+  }
+} 

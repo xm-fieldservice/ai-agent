@@ -1,122 +1,52 @@
 <template>
-  <div id="app" :class="{ 'keyboard-open': isKeyboardOpen }">
-    <NetworkStatus />
-    <GestureFeedback />
-    <router-view v-slot="{ Component }">
-      <keep-alive>
-        <component :is="Component" />
-      </keep-alive>
-    </router-view>
-    <InstallPrompt />
+  <div class="app">
+    <van-nav-bar
+      title="内务系统"
+      :left-arrow="showBack"
+      @click-left="onClickLeft"
+    />
+    
+    <div class="content">
+      <router-view></router-view>
+    </div>
+
+    <van-tabbar v-model="active" route>
+      <van-tabbar-item to="/" icon="home-o">首页</van-tabbar-item>
+      <van-tabbar-item to="/tasks" icon="todo-list-o">任务</van-tabbar-item>
+      <van-tabbar-item to="/messages" icon="chat-o">消息</van-tabbar-item>
+      <van-tabbar-item to="/profile" icon="user-o">我的</van-tabbar-item>
+    </van-tabbar>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { initMobileAdapter, updateLayout } from './utils/mobileAdapter'
-import InstallPrompt from './components/InstallPrompt.vue'
-import NetworkStatus from './components/NetworkStatus.vue'
-import GestureFeedback from './components/GestureFeedback.vue'
-import { featureService } from './services/feature-service'
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
-const isKeyboardOpen = ref(false)
+const router = useRouter()
+const route = useRoute()
+const active = ref(0)
 
-// 监听键盘状态
-const handleKeyboardState = () => {
-  isKeyboardOpen.value = document.body.classList.contains('keyboard-open')
-  updateLayout()
-}
-
-// 监听窗口大小变化
-const handleResize = () => {
-  updateLayout()
-}
-
-onMounted(async () => {
-  try {
-    // 初始化移动端适配
-    initMobileAdapter()
-    
-    // 初始化功能服务
-    await featureService.initialize()
-    console.info('移动端应用初始化完成')
-    
-    // 添加事件监听
-    document.body.addEventListener('classChange', handleKeyboardState)
-    window.addEventListener('resize', handleResize)
-    
-    // 初始布局
-    updateLayout()
-  } catch (error) {
-    console.error('应用初始化失败:', error)
-  }
+const showBack = computed(() => {
+  return route.path !== '/'
 })
 
-onBeforeUnmount(() => {
-  // 移除事件监听
-  document.body.removeEventListener('classChange', handleKeyboardState)
-  window.removeEventListener('resize', handleResize)
-})
+const onClickLeft = () => {
+  router.back()
+}
 </script>
 
-<style lang="scss">
-#app {
-  width: 100%;
-  height: 100%;
-  overflow-x: hidden;
+<style lang="scss" scoped>
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background-color: var(--background-color);
-  min-height: 100vh;
-  min-height: calc(var(--window-height, 100vh) - var(--keyboard-height, 0px));
-  padding-top: var(--safe-area-top, 0px);
-  padding-bottom: var(--safe-area-bottom, 0px);
   
-  &.keyboard-open {
-    min-height: calc(var(--window-height, 100vh) - var(--keyboard-height, 0px));
-    
-    .message-input {
-      transform: translateY(calc(-1 * var(--keyboard-height, 0px)));
-    }
-  }
-}
-
-// 移动端基础样式
-.mobile-device {
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  user-select: none;
-  
-  // 禁用长按菜单
-  * {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-  
-  // 允许输入框选择
-  input, textarea {
-    -webkit-user-select: text;
-    user-select: text;
-  }
-}
-
-// iOS设备特定样式
-.ios-device {
-  // 禁用橡皮筋效果
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  
-  .message-list {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-// Android设备特定样式
-.android-device {
-  .message-input {
-    padding-bottom: constant(safe-area-inset-bottom);
-    padding-bottom: env(safe-area-inset-bottom);
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-base);
   }
 }
 </style> 

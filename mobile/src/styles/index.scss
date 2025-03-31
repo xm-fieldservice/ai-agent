@@ -1,14 +1,9 @@
-// 首先导入变量，这样其他文件可以使用这些变量
-@import './variables.scss';
-
-// 导入CSS变量定义
-@import './css-variables.scss';
-
-// 然后是重置样式
-@import './reset.scss';
-
-// 最后是移动端适配样式
-@import './mobile-adaptation.scss';
+// 使用新的 @use 语法导入所有基础样式
+@use 'variables' as *;
+@use 'css-variables';
+@use 'reset';
+@use 'mobile-adaptation';
+@use 'components';
 
 // 全局样式
 html {

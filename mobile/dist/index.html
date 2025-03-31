@@ -1,18 +1,32 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#ffffff">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180">
     <link rel="mask-icon" href="/mask-icon.svg" color="#FFFFFF">
-    <meta name="description" content="智能对话助手">
-    <title>AI 助手</title>
-    <script type="module" crossorigin src="/assets/index-Dl_UYQcU.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-DXiNcP7p.css">
-  <link rel="manifest" href="/manifest.webmanifest"></head>
+    <meta name="description" content="AI助手移动端应用">
+    <title>AI助手</title>
+    <script type="module" crossorigin src="/assets/index-DPS5DG6D.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-JyAgTZfV.css">
+  <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
-    <div id="app"></div>
+    <div id="app"></div>
+    <script>
+      // 注册Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch(err => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
   </body>
 </html> 

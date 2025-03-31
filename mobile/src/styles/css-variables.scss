@@ -1,3 +1,5 @@
+@use 'variables' as *;
+
 :root {
   // 颜色变量
   --primary-color: #{$primary-color};
@@ -19,12 +21,17 @@
 
   // 圆角
   --border-radius-sm: #{$border-radius-sm};
-  --border-radius-base: #{$border-radius-base};
+  --border-radius-md: #{$border-radius-md};
   --border-radius-lg: #{$border-radius-lg};
-  --border-radius-circle: #{$border-radius-circle};
+  --border-radius-max: #{$border-radius-max};
 
   // 阴影
-  --shadow-sm: #{$shadow-sm};
-  --shadow-base: #{$shadow-base};
-  --shadow-lg: #{$shadow-lg};
+  --shadow-1: #{$shadow-1};
+  --shadow-2: #{$shadow-2};
+  --shadow-3: #{$shadow-3};
+
+  // 过渡
+  --transition-base: #{$transition-base};
+  --transition-fast: #{$transition-fast};
+  --transition-slow: #{$transition-slow};
 } 

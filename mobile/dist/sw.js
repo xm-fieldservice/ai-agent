@@ -1,1 +1,168 @@
-if(!self.define){let e,s={};const i=(i,n)=>(i=new URL(i+".js",n).href,s[i]||new Promise((s=>{if("document"in self){const e=document.createElement("script");e.src=i,e.onload=s,document.head.appendChild(e)}else e=i,importScripts(i),s()})).then((()=>{let e=s[i];if(!e)throw new Error(`Module ${i} didn’t register its module`);return e})));self.define=(n,r)=>{const t=e||("document"in self?document.currentScript.src:"")||location.href;if(s[t])return;let o={};const a=e=>i(e,t),l={module:{uri:t},exports:o,require:a};s[t]=Promise.all(n.map((e=>l[e]||a(e)))).then((e=>(r(...e),o)))}}define(["./workbox-42774e1b"],(function(e){"use strict";self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"assets/Chat-5bznWbbe.js",revision:null},{url:"assets/Chat-lQQFYnar.css",revision:null},{url:"assets/index-Dl_UYQcU.js",revision:null},{url:"assets/index-DXiNcP7p.css",revision:null},{url:"assets/workbox-window.prod.es5-B9K5rw8f.js",revision:null},{url:"index.html",revision:"0ffa6926480736ee93c67c6ec986265f"},{url:"mask-icon.svg",revision:"66205aaae4edadd5ab274f80a00157da"},{url:"mask-icon.svg",revision:"66205aaae4edadd5ab274f80a00157da"},{url:"manifest.webmanifest",revision:"ff9498d5ae70f7d7bbef0caadd4d41e1"}],{}),e.cleanupOutdatedCaches(),e.registerRoute(new e.NavigationRoute(e.createHandlerBoundToURL("index.html"))),e.registerRoute(/^https:\/\/api\.openai\.com\/.*/i,new e.NetworkFirst({cacheName:"api-cache",plugins:[new e.ExpirationPlugin({maxEntries:10,maxAgeSeconds:86400}),new e.CacheableResponsePlugin({statuses:[0,200]})]}),"GET")}));
+const CACHE_NAME = 'ai-assistant-v1';
+const STATIC_CACHE = 'static-v1';
+const DYNAMIC_CACHE = 'dynamic-v1';
+const API_CACHE = 'api-v1';
+
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/offline.html',
+  '/vite.svg'
+];
+
+// 安装Service Worker
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
+    })
+  );
+  self.skipWaiting();
+});
+
+// 激活Service Worker
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    Promise.all([
+      // 清理旧缓存
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((name) => {
+              return name !== STATIC_CACHE && 
+                     name !== DYNAMIC_CACHE && 
+                     name !== API_CACHE;
+            })
+            .map((name) => caches.delete(name))
+        );
+      }),
+      // 立即接管客户端
+      clients.claim()
+    ])
+  );
+});
+
+// 资源请求处理
+self.addEventListener('fetch', (event) => {
+  // 只处理GET请求
+  if (event.request.method !== 'GET') return;
+  
+  const url = new URL(event.request.url);
+  
+  // API请求处理
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(handleApiRequest(event.request));
+    return;
+  }
+  
+  // 静态资源处理
+  if (STATIC_ASSETS.includes(url.pathname)) {
+    event.respondWith(handleStaticRequest(event.request));
+    return;
+  }
+  
+  // 动态资源处理
+  event.respondWith(handleDynamicRequest(event.request));
+});
+
+// 处理API请求
+async function handleApiRequest(request) {
+  try {
+    const response = await fetch(request);
+    const cache = await caches.open(API_CACHE);
+    cache.put(request, response.clone());
+    return response;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    throw error;
+  }
+}
+
+// 处理静态资源请求
+async function handleStaticRequest(request) {
+  const cachedResponse = await caches.match(request);
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+  
+  try {
+    const response = await fetch(request);
+    const cache = await caches.open(STATIC_CACHE);
+    cache.put(request, response.clone());
+    return response;
+  } catch (error) {
+    if (request.mode === 'navigate') {
+      return caches.match('/offline.html');
+    }
+    throw error;
+  }
+}
+
+// 处理动态资源请求
+async function handleDynamicRequest(request) {
+  try {
+    const response = await fetch(request);
+    const cache = await caches.open(DYNAMIC_CACHE);
+    cache.put(request, response.clone());
+    return response;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    if (request.mode === 'navigate') {
+      return caches.match('/offline.html');
+    }
+    throw error;
+  }
+}
+
+// 后台同步
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-messages') {
+    event.waitUntil(syncMessages());
+  }
+});
+
+// 推送通知
+self.addEventListener('push', (event) => {
+  const options = {
+    body: event.data.text(),
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge.png',
+    vibrate: [100, 50, 100],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: 1
+    },
+    actions: [
+      {
+        action: 'explore',
+        title: '查看详情'
+      },
+      {
+        action: 'close',
+        title: '关闭'
+      }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification('AI助手', options)
+  );
+});
+
+// 处理通知点击
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  if (event.action === 'explore') {
+    event.waitUntil(
+      clients.openWindow('/')
+    );
+  }
+}); 

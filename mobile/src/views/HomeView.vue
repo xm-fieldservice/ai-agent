@@ -5,7 +5,7 @@
       <van-cell 
         title="功能测试" 
         is-link 
-        @click="router.push('/test')"
+        @click="$router.push('/test')"
       >
         <template #label>
           <span>测试键盘处理、手势操作等功能</span>
@@ -23,15 +23,15 @@ const router = useRouter()
 
 <style lang="scss" scoped>
 .home-view {
-  padding: 16px;
-  padding-top: calc(16px + var(--safe-area-top));
-  padding-bottom: calc(16px + var(--safe-area-bottom));
+  padding: $spacing-base;
+  padding-top: calc($spacing-base + var(--safe-area-top));
+  padding-bottom: calc($spacing-base + var(--safe-area-bottom));
 
   h1 {
-    margin: 0 0 24px;
-    font-size: 24px;
+    margin: 0 0 $spacing-lg;
+    font-size: $font-size-xl;
     font-weight: bold;
-    color: #323233;
+    color: $text-color;
     text-align: center;
   }
 }
